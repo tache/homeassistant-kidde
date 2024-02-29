@@ -12,13 +12,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.number import NumberDeviceClass
 from homeassistant.const import (
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
+    UnitOfTemperature.CELSIUS,
+    UnitOfTemperature.FAHRENHEIT,
     PERCENTAGE,
-    PRESSURE_HPA,
+    UnitOfPressure.HPA,
     CONCENTRATION_PARTS_PER_BILLION,
     CONCENTRATION_PARTS_PER_MILLION,
-    TIME_WEEKS
+    UnitOfTime.WEEKS
 )
 
 from .const import DOMAIN
@@ -41,33 +41,33 @@ _SENSOR_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         "life", icon="mdi:calendar-clock", name="Weeks to replace",
-        state_class=SensorStateClass.MEASUREMENT, native_unit_of_measurement=TIME_WEEKS
+        state_class=SensorStateClass.MEASUREMENT, native_unit_of_measurement=UnitOfTime.WEEKS
     ),
 )
 
 _MEASUREMENTSENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
-        "iaq_temperature", name="Indoor Temperature", 
+        "iaq_temperature", name="Indoor Temperature",
         device_class=SensorDeviceClass.TEMPERATURE
     ),
     SensorEntityDescription(
-        "humidity", name="Humidity", 
+        "humidity", name="Humidity",
         device_class=SensorDeviceClass.HUMIDITY
     ),
     SensorEntityDescription(
-        "hpa", name="Air Pressure", 
+        "hpa", name="Air Pressure",
         device_class=SensorDeviceClass.ATMOSPHERIC_PRESSURE
     ),
     SensorEntityDescription(
-        "tvoc", name="Total VOC", 
+        "tvoc", name="Total VOC",
         device_class=SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS_PARTS
     ),
     SensorEntityDescription(
-        "iaq", name="Indoor Air Quality", 
+        "iaq", name="Indoor Air Quality",
         device_class=SensorDeviceClass.AQI
     ),
     SensorEntityDescription(
-        "co2", name="CO₂ Level", 
+        "co2", name="CO₂ Level",
         device_class=SensorDeviceClass.CO2
     ),
 )
@@ -84,8 +84,8 @@ async def async_setup_entry(
             sensors.append(
                 KiddeSensorEntity(coordinator, device_id, entity_description)
             )
-        if "temperature" in coordinator.data.devices[device_id].get("capabilities") and coordinator.data.devices[device_id].get("iaq"): 
-            # The unit also has an Indoor Air Quality Monitor 
+        if "temperature" in coordinator.data.devices[device_id].get("capabilities") and coordinator.data.devices[device_id].get("iaq"):
+            # The unit also has an Indoor Air Quality Monitor
             for measuremententity_description in _MEASUREMENTSENSOR_DESCRIPTIONS:
                 sensors.append(
                     KiddeSensorMeasurementEntity(coordinator, device_id, measuremententity_description)
@@ -117,10 +117,10 @@ class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
     def native_unit_of_measurement(self) -> string:
         """Return the native unit of measurement of the sensor."""
         match self.kidde_device.get(self.entity_description.key).get("Unit").upper():
-            case "C": return TEMP_CELSIUS
-            case "F": return TEMP_FAHRENHEIT
+            case "C": return UnitOfTemperature.CELSIUS
+            case "F": return UnitOfTemperature.FAHRENHEIT
             case "%RH": return PERCENTAGE
-            case "HPA": return PRESSURE_HPA
+            case "HPA": return UnitOfPressure.HPA
             case "PPB": return CONCENTRATION_PARTS_PER_BILLION
             case "PPM": return CONCENTRATION_PARTS_PER_MILLION
             case _: return None
