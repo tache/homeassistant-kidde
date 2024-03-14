@@ -12,13 +12,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.number import NumberDeviceClass
 from homeassistant.const import (
-    UnitOfTemperature.CELSIUS,
-    UnitOfTemperature.FAHRENHEIT,
+    UnitOfTemperature,
     PERCENTAGE,
-    UnitOfPressure.HPA,
+    UnitOfPressure,
     CONCENTRATION_PARTS_PER_BILLION,
     CONCENTRATION_PARTS_PER_MILLION,
-    UnitOfTime.WEEKS
+    UnitOfTime
 )
 
 from .const import DOMAIN
