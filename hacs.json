@@ -1,7 +1,7 @@
 {
   "name": "Kidde HomeSafe",
   "filename": "kidde.zip",
-  "hide_default_branch": true,
+  "hide_default_branch": false,
   "homeassistant": "2024.3.1",
   "render_readme": true,
   "zip_release": true
