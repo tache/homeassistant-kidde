@@ -12,7 +12,6 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.components.number import NumberDeviceClass
 from homeassistant.const import (
     UnitOfTemperature,
     PERCENTAGE,
@@ -34,12 +33,14 @@ _SENSOR_DESCRIPTIONS = (
         "smoke_level",
         icon="mdi:smoke",
         name="Smoke Level",
+        state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.AQI,
     ),
     SensorEntityDescription(
         "co_level",
         icon="mdi:molecule-co",
         name="CO Level",
+        state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.CO,
     ),
     SensorEntityDescription(
@@ -47,25 +48,22 @@ _SENSOR_DESCRIPTIONS = (
         icon="mdi:battery-alert",
         name="Battery State",
         device_class=SensorDeviceClass.ENUM,
+        state_class=SensorStateClass.MEASUREMENT,
         options=["ok", "failed"],
     ),
     SensorEntityDescription(
         "last_seen",
         icon="mdi:home-clock",
         name="Last Seen",
+        state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.TIMESTAMP,
     ),
     SensorEntityDescription(
         "last_test_time",
         icon="mdi:home-clock",
         name="Last Test Time",
+        state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.TIMESTAMP,
-    ),
-    SensorEntityDescription(
-        "overall_iaq_status",
-        icon="mdi:air-filter",
-        name="Overall Air Quality",
-        device_class=SensorDeviceClass.AQI,
     ),
     SensorEntityDescription(
         "life",
@@ -77,6 +75,12 @@ _SENSOR_DESCRIPTIONS = (
 )
 
 _MEASUREMENTSENSOR_DESCRIPTIONS = (
+    SensorEntityDescription(
+        "overall_iaq_status",
+        icon="mdi:air-filter",
+        name="Overall Air Quality",
+        device_class=SensorDeviceClass.AQI,
+    ),
     SensorEntityDescription(
         "iaq_temperature",
         name="Indoor Temperature",
