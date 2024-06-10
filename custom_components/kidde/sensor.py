@@ -29,21 +29,28 @@ from .entity import KiddeEntity
 logger = logging.getLogger(__name__)
 
 _SENSOR_DESCRIPTIONS = (
-    SensorEntityDescription("smoke_level", icon="mdi:smoke", name="Smoke Level"),
-    SensorEntityDescription("co_level", icon="mdi:molecule-co", name="CO Level"),
+    SensorEntityDescription("smoke_level", icon="mdi:smoke", name="Smoke Level",
+                            device_class=SensorDeviceClass.AQI,),
+    SensorEntityDescription("co_level", icon="mdi:molecule-co", name="CO Level",
+                            device_class=SensorDeviceClass.CO,),
     SensorEntityDescription(
-        "battery_state", icon="mdi:battery-alert", name="Battery State"
+        "battery_state", icon="mdi:battery-alert", name="Battery State",
+        device_class=SensorDeviceClass.ENUM,
+        options=['ok', 'failed'],
     ),
-    SensorEntityDescription("last_seen", icon="mdi:home-clock", name="Last Seen"),
+    SensorEntityDescription("last_seen", icon="mdi:home-clock", name="Last Seen",
+                            device_class=SensorDeviceClass.TIMESTAMP,),
     SensorEntityDescription(
-        "last_test_time", icon="mdi:home-clock", name="Last Test Time"
+        "last_test_time", icon="mdi:home-clock", name="Last Test Time",
+        device_class=SensorDeviceClass.TIMESTAMP,
     ),
     SensorEntityDescription(
-        "overall_iaq_status", icon="mdi:air-filter", name="Overall Air Quality"
+        "overall_iaq_status", icon="mdi:air-filter", name="Overall Air Quality",
+        device_class=SensorDeviceClass.AQI,
     ),
     SensorEntityDescription(
         "life", icon="mdi:calendar-clock", name="Weeks to replace",
-        state_class=SensorStateClass.MEASUREMENT, native_unit_of_measurement=UnitOfTime.WEEKS
+        state_class=SensorStateClass.MEASUREMENT, native_unit_of_measurement=UnitOfTime.WEEKS,
     ),
 )
 
