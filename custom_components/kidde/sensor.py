@@ -1,5 +1,6 @@
 """Sensor platform for Kidde Homesafe integration."""
 from __future__ import annotations
+import logging
 
 from homeassistant.components.sensor import (
     SensorEntity,
@@ -24,6 +25,8 @@ from .const import DOMAIN
 from .coordinator import KiddeCoordinator
 from .entity import KiddeEntity
 
+
+logger = logging.getLogger(__name__)
 
 _SENSOR_DESCRIPTIONS = (
     SensorEntityDescription("smoke_level", icon="mdi:smoke", name="Smoke Level"),
@@ -98,7 +101,10 @@ class KiddeSensorEntity(KiddeEntity, SensorEntity):
     @property
     def native_value(self) -> str:
         """Return the native value of the sensor."""
-        return self.kidde_device.get(self.entity_description.key)
+        value = self.kidde_device.get(self.entity_description.key)
+        dtype = type(value)
+        logger.debug(f"{self.entity_description.key} of type {dtype} is {value}")
+        return value
 
 class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
     """Measurement Sensor for Kidde HomeSafe."""
