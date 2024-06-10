@@ -1,8 +1,12 @@
 """Binary sensor platform for Kidde Homesafe integration."""
+
 from __future__ import annotations
 
-from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.components.binary_sensor import BinarySensorEntityDescription
+from homeassistant.components.binary_sensor import (
+    BinarySensorEntity,
+    BinarySensorDeviceClass,
+    BinarySensorEntityDescription,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -14,12 +18,22 @@ from .entity import KiddeEntity
 
 _BINARY_SENSOR_DESCRIPTIONS = (
     BinarySensorEntityDescription(
-        "smoke_alarm", icon="mdi:smoke-detector-variant-alert", name="Smoke Alarm"
+        "smoke_alarm",
+        icon="mdi:smoke-detector-variant-alert",
+        name="Smoke Alarm",
+        device_class=BinarySensorDeviceClass.SMOKE,
     ),
     BinarySensorEntityDescription(
-        "smoke_hushed", icon="mdi:smoke-detector-variant-off", name="Smoke Hushed"
+        "smoke_hushed",
+        icon="mdi:smoke-detector-variant-off",
+        name="Smoke Hushed",
     ),
-    BinarySensorEntityDescription("co_alarm", icon="mdi:molecule-co", name="CO Alarm"),
+    BinarySensorEntityDescription(
+        "co_alarm",
+        icon="mdi:molecule-co",
+        name="CO Alarm",
+        device_class=BinarySensorDeviceClass.CO,
+    ),
 )
 
 
