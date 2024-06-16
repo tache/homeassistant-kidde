@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 import logging
+import datetime
 
 from homeassistant.components.sensor import (
     SensorEntity,
@@ -28,6 +29,22 @@ from .entity import KiddeEntity
 
 logger = logging.getLogger(__name__)
 
+
+_TIMESTAMP_DESCRIPTIONS = (
+    SensorEntityDescription(
+        "last_seen",
+        icon="mdi:home-clock",
+        name="Last Seen",
+        device_class=SensorDeviceClass.TIMESTAMP,
+    ),
+    SensorEntityDescription(
+        "last_test_time",
+        icon="mdi:home-clock",
+        name="Last Test Time",
+        device_class=SensorDeviceClass.TIMESTAMP,
+    ),
+)
+
 _SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
         "smoke_level",
@@ -50,20 +67,6 @@ _SENSOR_DESCRIPTIONS = (
         device_class=SensorDeviceClass.ENUM,
         state_class=SensorStateClass.MEASUREMENT,
         options=["ok", "failed"],
-    ),
-    SensorEntityDescription(
-        "last_seen",
-        icon="mdi:home-clock",
-        name="Last Seen",
-        state_class=SensorStateClass.MEASUREMENT,
-        device_class=SensorDeviceClass.TIMESTAMP,
-    ),
-    SensorEntityDescription(
-        "last_test_time",
-        icon="mdi:home-clock",
-        name="Last Test Time",
-        state_class=SensorStateClass.MEASUREMENT,
-        device_class=SensorDeviceClass.TIMESTAMP,
     ),
     SensorEntityDescription(
         "life",
@@ -121,6 +124,10 @@ async def async_setup_entry(
     coordinator: KiddeCoordinator = hass.data[DOMAIN][entry.entry_id]
     sensors = []
     for device_id in coordinator.data.devices:
+        for entity_description in _TIMESTAMP_DESCRIPTIONS:
+            sensors.append(
+                KiddeSensorTimestampEntity(coordinator, device_id, entity_description)
+            )
         for entity_description in _SENSOR_DESCRIPTIONS:
             sensors.append(
                 KiddeSensorEntity(coordinator, device_id, entity_description)
@@ -138,11 +145,31 @@ async def async_setup_entry(
     async_add_devices(sensors)
 
 
+class KiddeSensorTimestampEntity(KiddeEntity, SensorEntity):
+    """A KiddeSensoryEntity which returns a datetime.
+
+    Assume sensor returns datetime string e.g. '2024-06-14T03:40:39.667544824Z'
+    which needs to be converted to a python datetime.
+    """
+
+    @property
+    def native_value(self) -> datetime.datetime | None:
+        """Return the native value of the sensor."""
+        value = self.kidde_device.get(self.entity_description.key)
+        dtype = type(value)
+        logger.debug(f"{self.entity_description.key} of type {dtype} is {value}")
+        if value is None:
+            return value
+        return datetime.datetime.strptime(value[:-4], "%Y-%m-%dT%H:%M:%S.%f").replace(
+            tzinfo=datetime.timezone.utc
+        )
+
+
 class KiddeSensorEntity(KiddeEntity, SensorEntity):
     """Sensor for Kidde HomeSafe."""
 
     @property
-    def native_value(self) -> str:
+    def native_value(self) -> str | None | float | int:
         """Return the native value of the sensor."""
         value = self.kidde_device.get(self.entity_description.key)
         dtype = type(value)
