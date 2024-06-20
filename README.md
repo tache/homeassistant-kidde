@@ -106,7 +106,7 @@ If your request is valid, the JSON response body will the extensive detail of al
 
 ## Other Developer Notes
 
-###Home Assistant Developer Docs
+### Home Assistant Developer Docs
 https://developers.home-assistant.io
 
 ### HACS Publisher Documentation
