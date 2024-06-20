@@ -112,6 +112,6 @@ https://developers.home-assistant.io
 ### HACS Publisher Documentation
 https://hacs.xyz/docs/publish/start/
 
-###Building a Home Assistant Custom Component
+### Building a Home Assistant Custom Component
 https://aarongodfrey.dev/home%20automation/building_a_home_assistant_custom_component_part_1/
 
