@@ -1,5 +1,5 @@
 # New Lead Fork
-The @tache fork will takeover as the lead fork [fork][fork] for this repo.
+The @tache fork will takeover as the lead [fork][fork] for this repo.
 Thank you to @865charlesw for the awesome start to the effort.
 
 # Kidde HomeSafe Integration
