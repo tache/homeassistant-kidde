@@ -1,12 +1,13 @@
-# No Longer Maintained
-@865charlesw had some major life changes and took a break from this project, you may have better luck with @tache's [fork][fork]
-# Kidde HomeSafe Integration
+# New Lead Fork
+The @tache fork will takeover as the lead fork [fork][fork] for this repo.
+Thank you to @865charlesw for the awesome start to the effort.
 
+# Kidde HomeSafe Integration
 _Integration to integrate with [Kidde HomeSafe][kidde_homesafe]._
 
 ## HACS Installation
 
-1. Follow the [HACS instructions][hacs_custom_repo] for a custom repo, using https://github.com/865charlesw/homeassistant-kidde as the URL
+1. Follow the [HACS instructions][hacs_custom_repo] for a custom repo, using https://github.com/tache/homeassistant-kidde as the URL
 1. Restart your HomeAssistant instance
 1. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Kidde"
 1. Configuration is done in the UI
