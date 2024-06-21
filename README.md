@@ -1,3 +1,5 @@
+[![Validate](https://github.com/tache/homeassistant-kidde/actions/workflows/validate.yml/badge.svg)](https://github.com/tache/homeassistant-kidde/actions/workflows/validate.yml)
+
 # New Lead Fork
 The @tache fork will takeover as the lead [fork][fork] for this repo.
 Thank you to @865charlesw for the awesome start to the effort.
