@@ -1,8 +1,11 @@
+![Home Assistant](https://img.shields.io/badge/home%20assistant-%2341BDF5.svg?style=for-the-badge&logo=home-assistant&logoColor=white)
+
+[![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://github.com/tache/homeassistant-kidde/blob/master/LICENSE)
 [![Validate](https://github.com/tache/homeassistant-kidde/actions/workflows/validate.yml/badge.svg)](https://github.com/tache/homeassistant-kidde/actions/workflows/validate.yml)
 
 # New Lead Fork
-The @tache fork will takeover as the lead [fork][fork] for this repo.
-Thank you to @865charlesw for the awesome start to the effort.
+We are continueing the work for this capability, and this fork will takeover as the lead [fork][fork] for this repo.</br>
+Thank you to [@865charlesw](https://github.com/865charlesw) for the awesome start to the effort.</br>
 
 # Kidde HomeSafe Integration
 _Integration to integrate with [Kidde HomeSafe][kidde_homesafe]._
