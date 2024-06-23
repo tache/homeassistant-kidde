@@ -149,7 +149,7 @@ class KiddeSensorTimestampEntity(KiddeEntity, SensorEntity):
     """A KiddeSensoryEntity which returns a datetime.
 
     Assume sensor returns datetime string e.g. '2024-06-14T03:40:39.667544824Z'
-    which needs to be converted to a python datetime.
+    or '2024-06-22T16:00:19Z' which needs to be converted to a python datetime.
     """
 
     @property
@@ -160,7 +160,11 @@ class KiddeSensorTimestampEntity(KiddeEntity, SensorEntity):
         logger.debug(f"{self.entity_description.key} of type {dtype} is {value}")
         if value is None:
             return value
-        return datetime.datetime.strptime(value[:-4], "%Y-%m-%dT%H:%M:%S.%f").replace(
+        # Last seen and last test return different precision for time, so we
+        # need to strip anything beyond microseconds
+        # https://github.com/tache/homeassistant-kidde/issues/7
+        stripped = value.strip('Z').split('.')[0]
+        return datetime.datetime.strptime(stripped, "%Y-%m-%dT%H:%M:%S").replace(
             tzinfo=datetime.timezone.utc
         )
 
