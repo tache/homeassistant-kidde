@@ -32,13 +32,13 @@ logger = logging.getLogger(__name__)
 
 _TIMESTAMP_DESCRIPTIONS = (
     SensorEntityDescription(
-        "last_seen",
+        key="last_seen",
         icon="mdi:home-clock",
         name="Last Seen",
         device_class=SensorDeviceClass.TIMESTAMP,
     ),
     SensorEntityDescription(
-        "last_test_time",
+        key="last_test_time",
         icon="mdi:home-clock",
         name="Last Test Time",
         device_class=SensorDeviceClass.TIMESTAMP,
@@ -47,21 +47,21 @@ _TIMESTAMP_DESCRIPTIONS = (
 
 _SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
-        "smoke_level",
+        key="smoke_level",
         icon="mdi:smoke",
         name="Smoke Level",
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.AQI,
     ),
     SensorEntityDescription(
-        "co_level",
+        key="co_level",
         icon="mdi:molecule-co",
         name="CO Level",
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.CO,
     ),
     SensorEntityDescription(
-        "battery_state",
+        key="battery_state",
         icon="mdi:battery-alert",
         name="Battery State",
         device_class=SensorDeviceClass.ENUM,
@@ -69,7 +69,7 @@ _SENSOR_DESCRIPTIONS = (
         options=["ok", "failed"],
     ),
     SensorEntityDescription(
-        "life",
+        key="life",
         icon="mdi:calendar-clock",
         name="Weeks to replace",
         state_class=SensorStateClass.MEASUREMENT,
@@ -79,40 +79,47 @@ _SENSOR_DESCRIPTIONS = (
 
 _MEASUREMENTSENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
-        "overall_iaq_status",
+        key="overall_iaq_status",
         icon="mdi:air-filter",
         name="Overall Air Quality",
         device_class=SensorDeviceClass.AQI,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        "iaq_temperature",
+        key="iaq_temperature",
         name="Indoor Temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        "humidity",
+        key="humidity",
         name="Humidity",
         device_class=SensorDeviceClass.HUMIDITY,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        "hpa",
+        key="hpa",
         name="Air Pressure",
         device_class=SensorDeviceClass.ATMOSPHERIC_PRESSURE,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        "tvoc",
+        key="tvoc",
         name="Total VOC",
         device_class=SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS_PARTS,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        "iaq",
+        key="iaq",
         name="Indoor Air Quality",
         device_class=SensorDeviceClass.AQI,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        "co2",
+        key="co2",
         name="CO₂ Level",
         device_class=SensorDeviceClass.CO2,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
 )
 
