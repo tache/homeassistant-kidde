@@ -14,6 +14,8 @@ from .coordinator import KiddeCoordinator
 class KiddeEntity(CoordinatorEntity[KiddeCoordinator]):
     """Entity base class."""
 
+    _attr_has_entity_name = True
+
     def __init__(
         self,
         coordinator: KiddeCoordinator,
@@ -43,6 +45,7 @@ class KiddeEntity(CoordinatorEntity[KiddeCoordinator]):
             hw_version=device.get("hwrev"),
             sw_version=str(device.get("fwrev")),
             model=device.get("model"),
+            serial_number=device.get("serial_number"),
             manufacturer=MANUFACTURER,
         )
 
