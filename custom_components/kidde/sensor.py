@@ -43,6 +43,12 @@ _TIMESTAMP_DESCRIPTIONS = (
         name="Last Test Time",
         device_class=SensorDeviceClass.TIMESTAMP,
     ),
+    SensorEntityDescription(
+        key="iaq_last_test_time",
+        icon="mdi:home-clock",
+        name="IAQ Last Test Time",
+        device_class=SensorDeviceClass.TIMESTAMP,
+    ),
 )
 
 _SENSOR_DESCRIPTIONS = (
