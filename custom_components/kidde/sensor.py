@@ -20,6 +20,8 @@ from homeassistant.const import (
     CONCENTRATION_PARTS_PER_BILLION,
     CONCENTRATION_PARTS_PER_MILLION,
     UnitOfTime,
+    UnitOfElectricPotential,
+    EntityCategory,
 )
 
 from .const import DOMAIN
@@ -67,12 +69,13 @@ _SENSOR_DESCRIPTIONS = (
         device_class=SensorDeviceClass.CO,
     ),
     SensorEntityDescription(
-        key="battery_state",
-        icon="mdi:battery-alert",
-        name="Battery State",
-        device_class=SensorDeviceClass.ENUM,
+        key="batt_volt",
+        icon="mdi:battery",
+        name="Battery Voltage",
         state_class=SensorStateClass.MEASUREMENT,
-        options=["ok", "failed"],
+        device_class=SensorDeviceClass.VOLTAGE,
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        suggested_display_precision=2,
     ),
     SensorEntityDescription(
         key="life",
@@ -80,6 +83,21 @@ _SENSOR_DESCRIPTIONS = (
         name="Weeks to replace",
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfTime.WEEKS,
+    ),
+    SensorEntityDescription(
+        key="ap_rssi",
+        icon="mdi:wifi-strength-3",
+        name="Signal strength",
+        device_class=SensorDeviceClass.SIGNAL_STRENGTH,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+    ),
+    SensorEntityDescription(
+        key="ssid",
+        icon="mdi:wifi",
+        name="SSID",
+        entity_registry_enabled_default=False,
     ),
 )
 
@@ -222,6 +240,8 @@ class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
                 return CONCENTRATION_PARTS_PER_BILLION
             case "PPM":
                 return CONCENTRATION_PARTS_PER_MILLION
+            case "V":
+                return UnitOfElectricPotential.VOLT
             case _:
                 return None
 
