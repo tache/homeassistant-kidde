@@ -34,6 +34,24 @@ _BINARY_SENSOR_DESCRIPTIONS = (
         name="CO Alarm",
         device_class=BinarySensorDeviceClass.CO,
     ),
+    BinarySensorEntityDescription(
+        key="hardwire_smoke",
+        icon="mdi:smoke-detector-variant-alert",
+        name="Hardwire Smoke Alarm",
+        device_class=BinarySensorDeviceClass.SMOKE,
+    ),
+    BinarySensorEntityDescription(
+        key="too_much_smoke",
+        icon="mdi:smoke-detector-variant-alert",
+        name="Too Much Smoke",
+        device_class=BinarySensorDeviceClass.SMOKE,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    BinarySensorEntityDescription(
+        key="contact_lost",
+        icon="mdi:smoke-detector-variant-off",
+        name="Contact_Lost",
+    ),
 )
 
 _INVERSE_BINARY_SENSOR_DESCRIPTIONS = (
