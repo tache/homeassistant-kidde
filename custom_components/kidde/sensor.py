@@ -55,18 +55,18 @@ _TIMESTAMP_DESCRIPTIONS = (
 
 _SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
+        key="overall_iaq_status",
+        icon="mdi:air-filter",
+        name="Overall Air Quality",
+        device_class=SensorDeviceClass.ENUM,
+        options=["Very Bad", "Bad", "Moderate", "Good"],
+    ),
+    SensorEntityDescription(
         key="smoke_level",
         icon="mdi:smoke",
         name="Smoke Level",
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.AQI,
-    ),
-    SensorEntityDescription(
-        key="co_level",
-        icon="mdi:molecule-co",
-        name="CO Level",
-        state_class=SensorStateClass.MEASUREMENT,
-        device_class=SensorDeviceClass.CO,
     ),
     SensorEntityDescription(
         key="batt_volt",
@@ -103,13 +103,6 @@ _SENSOR_DESCRIPTIONS = (
 
 _MEASUREMENTSENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
-        key="overall_iaq_status",
-        icon="mdi:air-filter",
-        name="Overall Air Quality",
-        device_class=SensorDeviceClass.AQI,
-        state_class=SensorStateClass.MEASUREMENT,
-    ),
-    SensorEntityDescription(
         key="iaq_temperature",
         name="Indoor Temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
@@ -141,8 +134,8 @@ _MEASUREMENTSENSOR_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="co2",
-        name="CO₂ Level",
-        device_class=SensorDeviceClass.CO2,
+        name="CO Level",
+        device_class=SensorDeviceClass.CO,
         state_class=SensorStateClass.MEASUREMENT,
     ),
 )
@@ -222,32 +215,53 @@ class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
     @property
     def native_value(self) -> float:
         """Return the native value of the sensor."""
-        return self.kidde_device.get(self.entity_description.key).get("value")
+        entity_dict = self.kidde_device.get(self.entity_description.key)
+        if isinstance(entity_dict, dict):
+            return entity_dict.get("value")
+        else:
+            ktype = type(entity_dict)
+            logger.error(f"When getting the value, expected a dict for {self.entity_description.key}, but got type ktype of {ktype}")
+            return None
 
     @property
     def native_unit_of_measurement(self) -> string:
         """Return the native unit of measurement of the sensor."""
-        match self.kidde_device.get(self.entity_description.key).get("Unit").upper():
-            case "C":
-                return UnitOfTemperature.CELSIUS
-            case "F":
-                return UnitOfTemperature.FAHRENHEIT
-            case "%RH":
-                return PERCENTAGE
-            case "HPA":
-                return UnitOfPressure.HPA
-            case "PPB":
-                return CONCENTRATION_PARTS_PER_BILLION
-            case "PPM":
-                return CONCENTRATION_PARTS_PER_MILLION
-            case "V":
-                return UnitOfElectricPotential.VOLT
-            case _:
-                return None
+        entity_dict = self.kidde_device.get(self.entity_description.key)
+
+        if isinstance(entity_dict, dict):
+          entity_unit = entity_dict.get("Unit", "").upper()
+          match entity_unit:
+              case "C":
+                  return UnitOfTemperature.CELSIUS
+              case "F":
+                  return UnitOfTemperature.FAHRENHEIT
+              case "%RH":
+                  return PERCENTAGE
+              case "HPA":
+                  return UnitOfPressure.HPA
+              case "PPB":
+                  return CONCENTRATION_PARTS_PER_BILLION
+              case "PPM":
+                  return CONCENTRATION_PARTS_PER_MILLION
+              case "V":
+                  return UnitOfElectricPotential.VOLT
+              case _:
+                  if self.entity_description.key != "iaq":
+                      logger.warning(f"When getting the measurement for {self.entity_description.key}, there was an unexpected unit type: [{entity_unit}]")
+                  return None
+
+        else:
+            ktype = type(entity_dict)
+            logger.error(f"When getting the measurement, expected a dict for {self.entity_description.key}, but got type ktype of {ktype}")
+            return None
 
     @property
     def extra_state_attributes(self) -> dict:
         """Return additional attributes for the value sensor (Status)."""
-        return {
-            "Status": self.kidde_device.get(self.entity_description.key).get("status")
-        }
+        entity_dict = self.kidde_device.get(self.entity_description.key)
+        if isinstance(entity_dict, dict):
+            return {"Status": entity_dict.get("status")}
+        else:
+            ktype = type(entity_dict)
+            logger.error(f"When getting the attributes, expected a dict for {self.entity_description.key} but got type ktype of {ktype}")
+            return {"Status": "None"}

@@ -45,7 +45,6 @@ _BINARY_SENSOR_DESCRIPTIONS = (
         icon="mdi:smoke-detector-variant-alert",
         name="Too Much Smoke",
         device_class=BinarySensorDeviceClass.SMOKE,
-        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     BinarySensorEntityDescription(
         key="contact_lost",
