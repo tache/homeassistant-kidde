@@ -62,6 +62,13 @@ _SENSOR_DESCRIPTIONS = (
         options=["Very Bad", "Bad", "Moderate", "Good"],
     ),
     SensorEntityDescription(
+        key="co_level",
+        icon="mdi:molecule-co",
+        name="CO Level",
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.CO,
+    ),
+    SensorEntityDescription(
         key="smoke_level",
         icon="mdi:smoke",
         name="Smoke Level",
@@ -134,8 +141,8 @@ _MEASUREMENTSENSOR_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="co2",
-        name="CO Level",
-        device_class=SensorDeviceClass.CO,
+        name="CO₂ Level",
+        device_class=SensorDeviceClass.CO2,
         state_class=SensorStateClass.MEASUREMENT,
     ),
 )
