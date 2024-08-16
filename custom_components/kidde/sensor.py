@@ -3,6 +3,7 @@
 from __future__ import annotations
 import logging
 import datetime
+import typing
 
 from homeassistant.components.sensor import (
     SensorEntity,
@@ -213,14 +214,21 @@ class KiddeSensorEntity(KiddeEntity, SensorEntity):
 
 
 class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
-    """Measurement Sensor for Kidde HomeSafe."""
+    """Measurement Sensor for Kidde HomeSafe.
+
+    We expect the Kidde API to report sensor output as a dictionary containing
+    a float or intenger value, a string qualitative status string, and a units
+    string. For example: "tvoc": { "value": 605.09, "status": "Moderate",
+    "Unit": "ppb"}.
+
+    """
 
     @property
     def state_class(self) -> str:
         return SensorStateClass.MEASUREMENT
 
     @property
-    def native_value(self) -> float:
+    def native_value(self) -> typing.Union[float, None]:
         """Return the native value of the sensor."""
         entity_dict = self.kidde_device.get(self.entity_description.key)
         if isinstance(entity_dict, dict):
@@ -231,7 +239,7 @@ class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
             return None
 
     @property
-    def native_unit_of_measurement(self) -> string:
+    def native_unit_of_measurement(self) -> typing.Union[str, None]:
         """Return the native unit of measurement of the sensor."""
         entity_dict = self.kidde_device.get(self.entity_description.key)
 
