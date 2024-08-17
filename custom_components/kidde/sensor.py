@@ -15,14 +15,15 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.const import (
-    UnitOfTemperature,
-    PERCENTAGE,
-    UnitOfPressure,
     CONCENTRATION_PARTS_PER_BILLION,
     CONCENTRATION_PARTS_PER_MILLION,
-    UnitOfTime,
-    UnitOfElectricPotential,
     EntityCategory,
+    PERCENTAGE,
+    SIGNAL_STRENGTH_DECIBELS,
+    UnitOfElectricPotential,
+    UnitOfPressure,
+    UnitOfTemperature,
+    UnitOfTime,
 )
 
 from .const import DOMAIN
@@ -99,12 +100,14 @@ _SENSOR_DESCRIPTIONS = (
         device_class=SensorDeviceClass.SIGNAL_STRENGTH,
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
+        native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS,
         entity_registry_enabled_default=False,
     ),
     SensorEntityDescription(
         key="ssid",
         icon="mdi:wifi",
         name="SSID",
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
 )
