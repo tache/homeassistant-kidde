@@ -192,7 +192,12 @@ class KiddeSensorTimestampEntity(KiddeEntity, SensorEntity):
         """Return the native value of the sensor."""
         value = self.kidde_device.get(self.entity_description.key)
         dtype = type(value)
-        logger.debug(f"{self.entity_description.key} of type {dtype} is {value}")
+        logger.debug(
+            "%s, of type %s is %s",
+            self.entity_description.key,
+            dtype,
+            value,
+        )
         if value is None:
             return value
         # Last seen and last test return different precision for time, so we
@@ -212,7 +217,12 @@ class KiddeSensorEntity(KiddeEntity, SensorEntity):
         """Return the native value of the sensor."""
         value = self.kidde_device.get(self.entity_description.key)
         dtype = type(value)
-        logger.debug(f"{self.entity_description.key} of type {dtype} is {value}")
+        logger.debug(
+            "%s, of type %s is %s",
+            self.entity_description.key,
+            dtype,
+            value,
+        )
         return value
 
 
@@ -239,7 +249,11 @@ class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
             return entity_dict.get("value")
         else:
             ktype = type(entity_dict)
-            logger.error(f"When getting the value, expected a dict for {self.entity_description.key}, but got type ktype of {ktype}")
+            logger.warning(
+                "Unexpected type [%s], expected entity dict for [%s]",
+                ktype,
+                self.entity_description.key,
+            )
             return None
 
     @property
@@ -271,7 +285,11 @@ class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
 
         else:
             ktype = type(entity_dict)
-            logger.error(f"When getting the measurement, expected a dict for {self.entity_description.key}, but got type ktype of {ktype}")
+            logger.warning(
+                "Unexpected type [%s], expected entity dict for [%s]",
+                ktype,
+                self.entity_description.key,
+            )
             return None
 
     @property
@@ -282,5 +300,9 @@ class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
             return {"Status": entity_dict.get("status")}
         else:
             ktype = type(entity_dict)
-            logger.error(f"When getting the attributes, expected a dict for {self.entity_description.key} but got type ktype of {ktype}")
+            logger.warning(
+                "Unexpected type [%s], expected state attributes dict for [%s]",
+                ktype,
+                self.entity_description.key,
+            )
             return {"Status": "None"}
