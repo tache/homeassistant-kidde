@@ -228,6 +228,7 @@ class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
 
     @property
     def state_class(self) -> str:
+        """Return the state class of sensor"""
         return SensorStateClass.MEASUREMENT
 
     @property
