@@ -68,14 +68,12 @@ _SENSOR_DESCRIPTIONS = (
         icon="mdi:smoke",
         name="Smoke Level",
         state_class=SensorStateClass.MEASUREMENT,
-        device_class=SensorDeviceClass.AQI,
     ),
     SensorEntityDescription(
         key="co_level",
         icon="mdi:molecule-co",
         name="CO Level",
         state_class=SensorStateClass.MEASUREMENT,
-        device_class=SensorDeviceClass.CO,
     ),
     SensorEntityDescription(
         key="batt_volt",
