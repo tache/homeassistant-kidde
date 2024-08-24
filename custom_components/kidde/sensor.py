@@ -6,10 +6,10 @@ import datetime
 import typing
 
 from homeassistant.components.sensor import (
+    SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
-    SensorDeviceClass,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -30,6 +30,14 @@ from .const import DOMAIN
 from .coordinator import KiddeCoordinator
 from .entity import KiddeEntity
 
+# Constants for dictionary keys
+KEY_MODEL = "model"
+KEY_VALUE = "value"
+KEY_STATUS = "status"
+KEY_UNIT = "Unit"
+KEY_CAPABILITIES = "capabilities"
+KEY_IAQ = "iaq"
+KEY_TEMPERATURE = "temperature"
 
 logger = logging.getLogger(__name__)
 
@@ -150,9 +158,7 @@ _MEASUREMENTSENSOR_DESCRIPTIONS = (
 )
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback
-) -> None:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback) -> None:
     """Set up the sensor platform."""
     coordinator: KiddeCoordinator = hass.data[DOMAIN][entry.entry_id]
     sensors = []
@@ -175,6 +181,7 @@ async def async_setup_entry(
                         coordinator, device_id, measuremententity_description
                     )
                 )
+
     async_add_devices(sensors)
 
 
@@ -190,21 +197,27 @@ class KiddeSensorTimestampEntity(KiddeEntity, SensorEntity):
         """Return the native value of the sensor."""
         value = self.kidde_device.get(self.entity_description.key)
         dtype = type(value)
-        logger.debug(
-            "%s, of type %s is %s",
-            self.entity_description.key,
-            dtype,
-            value,
-        )
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                "%s, of type %s is %s",
+                self.entity_description.key,
+                dtype,
+                value,
+            )
         if value is None:
             return value
         # Last seen and last test return different precision for time, so we
         # need to strip anything beyond microseconds
         # https://github.com/tache/homeassistant-kidde/issues/7
         stripped = value.strip("Z").split(".")[0]
-        return datetime.datetime.strptime(stripped, "%Y-%m-%dT%H:%M:%S").replace(
-            tzinfo=datetime.timezone.utc
-        )
+        try:
+            return datetime.datetime.strptime(stripped, "%Y-%m-%dT%H:%M:%S").replace(
+                tzinfo=datetime.timezone.utc
+            )
+        except ValueError as e:
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.error("Error parsing datetime '%s': %s", value, e)
+            return None
 
 
 class KiddeSensorEntity(KiddeEntity, SensorEntity):
@@ -215,12 +228,13 @@ class KiddeSensorEntity(KiddeEntity, SensorEntity):
         """Return the native value of the sensor."""
         value = self.kidde_device.get(self.entity_description.key)
         dtype = type(value)
-        logger.debug(
-            "%s, of type %s is %s",
-            self.entity_description.key,
-            dtype,
-            value,
-        )
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                "%s, of type %s is %s",
+                self.entity_description.key,
+                dtype,
+                value,
+            )
         return value
 
 
@@ -240,57 +254,61 @@ class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
         return SensorStateClass.MEASUREMENT
 
     @property
-    def native_value(self) -> typing.Union[float, None]:
+    def native_value(self) -> float | None:
         """Return the native value of the sensor."""
         entity_dict = self.kidde_device.get(self.entity_description.key)
-        new_dict = None
         if isinstance(entity_dict, dict):
-            new_dict = entity_dict.get("value")
+            sensor_value = entity_dict.get(KEY_VALUE)
         else:
             ktype = type(entity_dict)
-            logger.warning(
-                "Unexpected type [%s], expected entity dict for [%s]",
-                ktype,
-                self.entity_description.key,
-            )
-            new_dict = None
-        return new_dict
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.warning(
+                    "Unexpected type [%s], expected entity dict for [%s]",
+                    ktype,
+                    self.entity_description.key,
+                )
+            sensor_value = None
+        return sensor_value
 
     @property
-    def native_unit_of_measurement(self) -> typing.Union[str, None]:
+    def native_unit_of_measurement(self) -> str | None:
         """Return the native unit of measurement of the sensor."""
         entity_dict = self.kidde_device.get(self.entity_description.key)
-        measurement_unit = None
 
-        if isinstance(entity_dict, dict):
-            entity_unit = entity_dict.get("Unit", "").upper()
-            match entity_unit:
-                case "C":
-                    measurement_unit = UnitOfTemperature.CELSIUS
-                case "F":
-                    measurement_unit = UnitOfTemperature.FAHRENHEIT
-                case "%RH":
-                    measurement_unit = PERCENTAGE
-                case "HPA":
-                    measurement_unit = UnitOfPressure.HPA
-                case "PPB":
-                    measurement_unit = CONCENTRATION_PARTS_PER_BILLION
-                case "PPM":
-                    measurement_unit = CONCENTRATION_PARTS_PER_MILLION
-                case "V":
-                    measurement_unit = UnitOfElectricPotential.VOLT
-                case _:
-                    measurement_unit = None
+        if not isinstance(entity_dict, dict):
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.warning(
+                    "Unexpected type [%s], expected entity dict for [%s]",
+                    type(entity_dict),
+                    self.entity_description.key,
+                )
+            return None
 
-        else:
-            ktype = type(entity_dict)
-            logger.warning(
-                "Unexpected type [%s], expected entity dict for [%s]",
-                ktype,
-                self.entity_description.key,
-            )
-            measurement_unit = None
-        return measurement_unit
+        entity_unit = entity_dict.get(KEY_UNIT, "").upper()
+
+        match entity_unit:
+            case "C":
+                return UnitOfTemperature.CELSIUS
+            case "F":
+                return UnitOfTemperature.FAHRENHEIT
+            case "%RH":
+                return PERCENTAGE
+            case "HPA":
+                return UnitOfPressure.HPA
+            case "PPB":
+                return CONCENTRATION_PARTS_PER_BILLION
+            case "PPM":
+                return CONCENTRATION_PARTS_PER_MILLION
+            case "V":
+                return UnitOfElectricPotential.VOLT
+            case _:
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.warning(
+                        "Unknown unit [%s] for sensor [%s]",
+                        entity_unit,
+                        self.entity_description.key,
+                    )
+                return None
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -298,13 +316,14 @@ class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
         entity_dict = self.kidde_device.get(self.entity_description.key)
         attribute_dict = None
         if isinstance(entity_dict, dict):
-            attribute_dict = {"Status": entity_dict.get("status")}
+            attribute_dict = {"Status": entity_dict.get(KEY_STATUS)}
         else:
             ktype = type(entity_dict)
-            logger.warning(
-                "Unexpected type [%s], expected state attributes dict for [%s]",
-                ktype,
-                self.entity_description.key,
-            )
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.warning(
+                    "Unexpected type [%s], expected state attributes dict for [%s]",
+                    ktype,
+                    self.entity_description.key,
+                )
             attribute_dict = {"Status": None}
         return attribute_dict
