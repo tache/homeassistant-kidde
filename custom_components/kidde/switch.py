@@ -15,6 +15,8 @@ from .coordinator import KiddeCoordinator
 from .entity import KiddeCommand
 from .entity import KiddeEntity
 
+# Constants for dictionary keys
+KEY_MODEL = "model"
 
 @dataclass
 class KiddeSwitchEntityDescriptionMixin:
@@ -42,17 +44,24 @@ _SWITCH_DESCRIPTIONS = (
 )
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback
-) -> None:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback) -> None:
     """Set up the switch platform."""
     coordinator: KiddeCoordinator = hass.data[DOMAIN][entry.entry_id]
     sensors = []
     for device_id in coordinator.data.devices:
-        for entity_description in _SWITCH_DESCRIPTIONS:
-            sensors.append(
-                KiddeSwitchEntity(coordinator, device_id, entity_description)
-            )
+        if coordinator.data.devices[device_id].get(KEY_MODEL, None) == "wifiiaqdetector":
+            for entity_description in _SWITCH_DESCRIPTIONS:
+                sensors.append(
+                    KiddeSwitchEntity(coordinator, device_id, entity_description)
+                )
+        elif coordinator.data.devices[device_id].get(KEY_MODEL, None) == "waterleakdetector":
+            pass # TODO: fill this later
+        else:
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.warning(
+                    "Unexpected model [%s]",
+                    coordinator.data.devices[device_id].get(KEY_MODEL),
+                )
     async_add_devices(sensors)
 
 

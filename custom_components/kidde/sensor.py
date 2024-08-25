@@ -44,12 +44,6 @@ logger = logging.getLogger(__name__)
 
 _TIMESTAMP_DESCRIPTIONS = (
     SensorEntityDescription(
-        key="last_seen",
-        icon="mdi:home-clock",
-        name="Last Seen",
-        device_class=SensorDeviceClass.TIMESTAMP,
-    ),
-    SensorEntityDescription(
         key="last_test_time",
         icon="mdi:home-clock",
         name="Last Test Time",
@@ -63,7 +57,16 @@ _TIMESTAMP_DESCRIPTIONS = (
     ),
 )
 
-_SENSOR_DESCRIPTIONS = (
+_COMMON_TIMESTAMP_DESCRIPTIONS = (
+    SensorEntityDescription(
+        key="last_seen",
+        icon="mdi:home-clock",
+        name="Last Seen",
+        device_class=SensorDeviceClass.TIMESTAMP,
+    ),
+)
+
+_IAQ_SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
         key="overall_iaq_status",
         icon="mdi:air-filter",
@@ -100,16 +103,6 @@ _SENSOR_DESCRIPTIONS = (
         native_unit_of_measurement=UnitOfTime.WEEKS,
     ),
     SensorEntityDescription(
-        key="ap_rssi",
-        icon="mdi:wifi-strength-3",
-        name="Signal strength",
-        device_class=SensorDeviceClass.SIGNAL_STRENGTH,
-        state_class=SensorStateClass.MEASUREMENT,
-        entity_category=EntityCategory.DIAGNOSTIC,
-        native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS,
-        entity_registry_enabled_default=False,
-    ),
-    SensorEntityDescription(
         key="ssid",
         icon="mdi:wifi",
         name="SSID",
@@ -118,7 +111,86 @@ _SENSOR_DESCRIPTIONS = (
     ),
 )
 
-_MEASUREMENTSENSOR_DESCRIPTIONS = (
+_WATER_SENSOR_DESCRIPTIONS = (
+    SensorEntityDescription(
+        key="alarm_interval",
+        icon="mdi:alarm-check",
+        name="Alarm Interval",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    SensorEntityDescription(
+        key="alarm_reset_time",
+        icon="mdi:alarm-snooze",
+        name="Alarm Reset Time",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    SensorEntityDescription(
+        key="battery_level",
+        icon="mdi:battery-high",
+        name="Battery Level",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key="battery_voltage",
+        icon="mdi:battery",
+        name="Battery Voltage",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        suggested_display_precision=2,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.VOLTAGE,
+    ),
+    SensorEntityDescription(
+        key="checkin_interval",
+        icon="mdi:clock-check",
+        name="Checkin Interval",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfTime.HOURS,
+    ),
+    SensorEntityDescription(
+        key="hold_alarm_time",
+        icon="mdi:alarm-plus",
+        name="Alarm Hold Time",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    SensorEntityDescription(
+        key="rapid_temperature_variation_status",
+        icon="mdi:swap-vertical-variant",
+        name="Temperature Variation Status",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    SensorEntityDescription(
+        key="temperature_variation_value",
+        icon="mdi:swap-vertical-variant",
+        name="Temperature Variation",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    SensorEntityDescription(
+        key="temperature",
+        name="Temperature",
+        icon="mdi:home-thermometer",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
+    ),
+)
+
+_COMMON_SENSOR_DESCRIPTIONS = (
+    SensorEntityDescription(
+        key="ap_rssi",
+        icon="mdi:wifi-strength-3",
+        name="Signal strength",
+        native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS,
+        entity_registry_enabled_default=False,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        device_class=SensorDeviceClass.SIGNAL_STRENGTH,
+    ),
+)
+
+_MEASUREMENT_SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
         key="iaq_temperature",
         name="Indoor Temperature",
@@ -163,24 +235,51 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_d
     coordinator: KiddeCoordinator = hass.data[DOMAIN][entry.entry_id]
     sensors = []
     for device_id in coordinator.data.devices:
-        for entity_description in _TIMESTAMP_DESCRIPTIONS:
-            sensors.append(
-                KiddeSensorTimestampEntity(coordinator, device_id, entity_description)
-            )
-        for entity_description in _SENSOR_DESCRIPTIONS:
+        if logger.isEnabledFor(logging.DEBUG):
+          logger.debug(
+              "Checking model: [%s]",
+              coordinator.data.devices[device_id].get(KEY_MODEL, None),
+          )
+
+        # Add the sensors unique to each model
+        if coordinator.data.devices[device_id].get(KEY_MODEL) == "wifiiaqdetector":
+            for entity_description in _IAQ_SENSOR_DESCRIPTIONS:
+                sensors.append(
+                    KiddeSensorEntity(coordinator, device_id, entity_description)
+                )
+            for entity_description in _TIMESTAMP_DESCRIPTIONS:
+                sensors.append(
+                    KiddeSensorTimestampEntity(coordinator, device_id, entity_description)
+                )
+            if KEY_TEMPERATURE in coordinator.data.devices[device_id].get(KEY_CAPABILITIES) and coordinator.data.devices[device_id].get(KEY_IAQ):
+                # The unit also has an Indoor Air Quality Monitor
+                for measurement_entity_description in _MEASUREMENT_SENSOR_DESCRIPTIONS:
+                    sensors.append(
+                        KiddeSensorMeasurementEntity(
+                            coordinator, device_id, measurement_entity_description
+                        )
+                    )
+        elif coordinator.data.devices[device_id].get(KEY_MODEL, None) == "waterleakdetector":
+            for entity_description in _WATER_SENSOR_DESCRIPTIONS:
+                sensors.append(
+                    KiddeSensorEntity(coordinator, device_id, entity_description)
+                )
+        else:
+            if logger.isEnabledFor(logging.DEBUG):
+              logger.warning(
+                  "Unexpected model [%s]",
+                  coordinator.data.devices[device_id].get(KEY_MODEL, None),
+              )
+
+        # Add the common sensors
+        for entity_description in _COMMON_SENSOR_DESCRIPTIONS:
             sensors.append(
                 KiddeSensorEntity(coordinator, device_id, entity_description)
             )
-        if "temperature" in coordinator.data.devices[device_id].get(
-            "capabilities"
-        ) and coordinator.data.devices[device_id].get("iaq"):
-            # The unit also has an Indoor Air Quality Monitor
-            for measuremententity_description in _MEASUREMENTSENSOR_DESCRIPTIONS:
-                sensors.append(
-                    KiddeSensorMeasurementEntity(
-                        coordinator, device_id, measuremententity_description
-                    )
-                )
+        for entity_description in _COMMON_TIMESTAMP_DESCRIPTIONS:
+            sensors.append(
+                KiddeSensorTimestampEntity(coordinator, device_id, entity_description)
+            )
 
     async_add_devices(sensors)
 

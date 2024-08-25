@@ -13,6 +13,10 @@ _Integration to integrate smart alarm devices with [Kidde HomeSafe][kidde_homesa
 Devices supported include
 - Smoke + Carbon Monoxide Alarm with Indoor Air Quality Monitor (P4010ACSCOAQ-WF) (verified)
 - Smoke Alarm with Indoor Air Quality Monitor (P4010ACSAQ-WF) (verified)
+- Smoke + Carbon Monoxide Alarm with smart features (P4010ACSCO-WF)
+- Smoke Alarm with smart features (P4010ACS-WF)
+- Water Leak + Freeze Detector (60WLDR-W) (verified)
+- Carbon Monoxide Alarm with Indoor Air Quality Monitor (KN-COP-DP-10YL-AQ-WF)
 
 ## HACS Installation
 

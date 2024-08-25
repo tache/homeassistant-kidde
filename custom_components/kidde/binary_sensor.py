@@ -1,10 +1,11 @@
 """Binary sensor platform for Kidde Homesafe integration."""
 
 from __future__ import annotations
+import logging
 
 from homeassistant.components.binary_sensor import (
-    BinarySensorEntity,
     BinarySensorDeviceClass,
+    BinarySensorEntity,
     BinarySensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
@@ -12,14 +13,20 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.const import (
     EntityCategory,
+    UnitOfTime,
 )
 
 from .const import DOMAIN
 from .coordinator import KiddeCoordinator
 from .entity import KiddeEntity
 
+# Constants for dictionary keys
+KEY_MODEL = "model"
 
-_BINARY_SENSOR_DESCRIPTIONS = (
+logger = logging.getLogger(__name__)
+
+
+_IAQ_BINARY_SENSOR_DESCRIPTIONS = (
     BinarySensorEntityDescription(
         key="smoke_alarm",
         icon="mdi:smoke-detector-variant-alert",
@@ -50,10 +57,43 @@ _BINARY_SENSOR_DESCRIPTIONS = (
         entity_category=EntityCategory.DIAGNOSTIC,
         device_class=BinarySensorDeviceClass.SMOKE,
     ),
+)
+
+_COMMON_BINARY_SENSOR_DESCRIPTIONS = (
     BinarySensorEntityDescription(
         key="contact_lost",
         icon="mdi:smoke-detector-variant-off",
-        name="Contact_Lost",
+        name="Contact Lost",
+    ),
+    BinarySensorEntityDescription(
+        key="lost",
+        icon="mdi:smoke-detector-variant-off",
+        name="Lost",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+)
+
+_WATER_BINARY_SENSOR_DESCRIPTIONS = (
+    BinarySensorEntityDescription(
+        key="water_alarm",
+        icon="mdi:water-alert",
+        name="Water Alert",
+    ),
+    BinarySensorEntityDescription(
+        key="low_temp_alarm",
+        icon="mdi:snowflake-alert",
+        name="Freeze Alert",
+    ),
+    BinarySensorEntityDescription(
+        key="low_battery_alarm",
+        icon="mdi:battery-alert-variant",
+        name="Battery Low Alert",
+    ),
+    BinarySensorEntityDescription(
+        key="reset_flag",
+        icon="mdi:history",
+        name="Reset Flag",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
 )
 
@@ -69,34 +109,62 @@ _INVERSE_BINARY_SENSOR_DESCRIPTIONS = (
 _BATTERY_SENSOR_DESCRIPTIONS = (
     BinarySensorEntityDescription(
         key="battery_state",
-        icon="mdi:battery-alert",
+        icon="mdi:battery",
         name="Battery State",
         device_class=BinarySensorDeviceClass.BATTERY
     ),
 )
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback
+def add_sensors(
+    coordinator: KiddeCoordinator,
+    device_id: str,
+    descriptions: tuple[BinarySensorEntityDescription],
+    sensor_class: type[BinarySensorEntity],
+    sensors: list[BinarySensorEntity]
 ) -> None:
+    """Add sensors to the sensors list based on entity descriptions and sensor class."""
+    sensors.extend(
+        sensor_class(coordinator, device_id, entity_description)
+        for entity_description in descriptions
+    )
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback) -> None:
     """Set up the binary sensor platform."""
     coordinator: KiddeCoordinator = hass.data[DOMAIN][entry.entry_id]
     sensors = []
-    for device_id in coordinator.data.devices:
-        for entity_description in _BINARY_SENSOR_DESCRIPTIONS:
-            sensors.append(
-                KiddeBinarySensorEntity(coordinator, device_id, entity_description)
-            )
-        for entity_description in _INVERSE_BINARY_SENSOR_DESCRIPTIONS:
-            sensors.append(
-                KiddeInverseBinarySensorEntity(coordinator, device_id, entity_description)
-            )
-        for entity_description in _BATTERY_SENSOR_DESCRIPTIONS:
-            sensors.append(
-                KiddeBatteryStateSensorEntity(coordinator, device_id, entity_description)
-            )
-    async_add_devices(sensors)
 
+    model_sensor_mapping = {
+        "wifiiaqdetector": _IAQ_BINARY_SENSOR_DESCRIPTIONS,
+        "waterleakdetector": _WATER_BINARY_SENSOR_DESCRIPTIONS,
+    }
+
+    for device_id, device_data in coordinator.data.devices.items():
+        model = device_data.get(KEY_MODEL)
+
+        if model is None:
+            logger.warning("No model found for device [%s]", device_id)
+            continue
+
+        entity_descriptions = model_sensor_mapping.get(model)
+
+        if entity_descriptions is not None:
+            # Add model-specific sensors
+            add_sensors(coordinator, device_id, entity_descriptions, KiddeBinarySensorEntity, sensors)
+        else:
+            logger.warning("Unexpected model [%s]", model)
+
+        # Add common sensors regardless of model
+        sensor_mapping = [
+            (_COMMON_BINARY_SENSOR_DESCRIPTIONS, KiddeBinarySensorEntity),
+            (_BATTERY_SENSOR_DESCRIPTIONS, KiddeBatteryStateSensorEntity),
+            (_INVERSE_BINARY_SENSOR_DESCRIPTIONS, KiddeInverseBinarySensorEntity),
+        ]
+
+        for descriptions, sensor_class in sensor_mapping:
+            add_sensors(coordinator, device_id, descriptions, sensor_class, sensors)
+
+    async_add_devices(sensors)
 
 class KiddeBinarySensorEntity(KiddeEntity, BinarySensorEntity):
     """Binary sensor for Kidde HomeSafe."""
