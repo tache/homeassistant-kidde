@@ -10,6 +10,9 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.const import (
+    EntityCategory,
+)
 
 from .const import DOMAIN
 from .coordinator import KiddeCoordinator
@@ -44,8 +47,8 @@ _BINARY_SENSOR_DESCRIPTIONS = (
         key="too_much_smoke",
         icon="mdi:smoke-detector-variant-alert",
         name="Too Much Smoke",
-        device_class=BinarySensorDeviceClass.SMOKE,
         entity_category=EntityCategory.DIAGNOSTIC,
+        device_class=BinarySensorDeviceClass.SMOKE,
     ),
     BinarySensorEntityDescription(
         key="contact_lost",

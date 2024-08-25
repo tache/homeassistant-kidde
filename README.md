@@ -4,11 +4,15 @@
 [![Validate](https://github.com/tache/homeassistant-kidde/actions/workflows/validate.yml/badge.svg)](https://github.com/tache/homeassistant-kidde/actions/workflows/validate.yml)
 
 # New Lead Fork
-We are continueing the work for this capability, and this fork will takeover as the lead [fork][fork] for this repo.</br>
+We are continuing the work for this capability, and this fork will takeover as the lead [fork][fork] for this repo.</br>
 Thank you to [@865charlesw](https://github.com/865charlesw) for the awesome start to the effort.</br>
 
 # Kidde HomeSafe Integration
-_Integration to integrate with [Kidde HomeSafe][kidde_homesafe]._
+_Integration to integrate smart alarm devices with [Kidde HomeSafe][kidde_homesafe]._
+
+Devices supported include
+- Smoke + Carbon Monoxide Alarm with Indoor Air Quality Monitor (P4010ACSCOAQ-WF) (verified)
+- Smoke Alarm with Indoor Air Quality Monitor (P4010ACSAQ-WF) (verified)
 
 ## HACS Installation
 

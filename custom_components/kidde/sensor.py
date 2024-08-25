@@ -3,31 +3,41 @@
 from __future__ import annotations
 import logging
 import datetime
+import typing
 
 from homeassistant.components.sensor import (
+    SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
-    SensorDeviceClass,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.const import (
-    UnitOfTemperature,
-    PERCENTAGE,
-    UnitOfPressure,
     CONCENTRATION_PARTS_PER_BILLION,
     CONCENTRATION_PARTS_PER_MILLION,
-    UnitOfTime,
-    UnitOfElectricPotential,
     EntityCategory,
+    PERCENTAGE,
+    SIGNAL_STRENGTH_DECIBELS,
+    UnitOfElectricPotential,
+    UnitOfPressure,
+    UnitOfTemperature,
+    UnitOfTime,
 )
 
 from .const import DOMAIN
 from .coordinator import KiddeCoordinator
 from .entity import KiddeEntity
 
+# Constants for dictionary keys
+KEY_MODEL = "model"
+KEY_VALUE = "value"
+KEY_STATUS = "status"
+KEY_UNIT = "Unit"
+KEY_CAPABILITIES = "capabilities"
+KEY_IAQ = "iaq"
+KEY_TEMPERATURE = "temperature"
 
 logger = logging.getLogger(__name__)
 
@@ -55,18 +65,23 @@ _TIMESTAMP_DESCRIPTIONS = (
 
 _SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
+        key="overall_iaq_status",
+        icon="mdi:air-filter",
+        name="Overall Air Quality",
+        device_class=SensorDeviceClass.ENUM,
+        options=["Very Bad", "Bad", "Moderate", "Good"],
+    ),
+    SensorEntityDescription(
         key="smoke_level",
         icon="mdi:smoke",
         name="Smoke Level",
         state_class=SensorStateClass.MEASUREMENT,
-        device_class=SensorDeviceClass.AQI,
     ),
     SensorEntityDescription(
         key="co_level",
         icon="mdi:molecule-co",
         name="CO Level",
         state_class=SensorStateClass.MEASUREMENT,
-        device_class=SensorDeviceClass.CO,
     ),
     SensorEntityDescription(
         key="batt_volt",
@@ -91,24 +106,19 @@ _SENSOR_DESCRIPTIONS = (
         device_class=SensorDeviceClass.SIGNAL_STRENGTH,
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
+        native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS,
         entity_registry_enabled_default=False,
     ),
     SensorEntityDescription(
         key="ssid",
         icon="mdi:wifi",
         name="SSID",
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
 )
 
 _MEASUREMENTSENSOR_DESCRIPTIONS = (
-    SensorEntityDescription(
-        key="overall_iaq_status",
-        icon="mdi:air-filter",
-        name="Overall Air Quality",
-        device_class=SensorDeviceClass.AQI,
-        state_class=SensorStateClass.MEASUREMENT,
-    ),
     SensorEntityDescription(
         key="iaq_temperature",
         name="Indoor Temperature",
@@ -148,9 +158,7 @@ _MEASUREMENTSENSOR_DESCRIPTIONS = (
 )
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback
-) -> None:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback) -> None:
     """Set up the sensor platform."""
     coordinator: KiddeCoordinator = hass.data[DOMAIN][entry.entry_id]
     sensors = []
@@ -173,6 +181,7 @@ async def async_setup_entry(
                         coordinator, device_id, measuremententity_description
                     )
                 )
+
     async_add_devices(sensors)
 
 
@@ -188,16 +197,27 @@ class KiddeSensorTimestampEntity(KiddeEntity, SensorEntity):
         """Return the native value of the sensor."""
         value = self.kidde_device.get(self.entity_description.key)
         dtype = type(value)
-        logger.debug(f"{self.entity_description.key} of type {dtype} is {value}")
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                "%s, of type %s is %s",
+                self.entity_description.key,
+                dtype,
+                value,
+            )
         if value is None:
             return value
         # Last seen and last test return different precision for time, so we
         # need to strip anything beyond microseconds
         # https://github.com/tache/homeassistant-kidde/issues/7
-        stripped = value.strip('Z').split('.')[0]
-        return datetime.datetime.strptime(stripped, "%Y-%m-%dT%H:%M:%S").replace(
-            tzinfo=datetime.timezone.utc
-        )
+        stripped = value.strip("Z").split(".")[0]
+        try:
+            return datetime.datetime.strptime(stripped, "%Y-%m-%dT%H:%M:%S").replace(
+                tzinfo=datetime.timezone.utc
+            )
+        except ValueError as e:
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.error("Error parsing datetime '%s': %s", value, e)
+            return None
 
 
 class KiddeSensorEntity(KiddeEntity, SensorEntity):
@@ -208,26 +228,65 @@ class KiddeSensorEntity(KiddeEntity, SensorEntity):
         """Return the native value of the sensor."""
         value = self.kidde_device.get(self.entity_description.key)
         dtype = type(value)
-        logger.debug(f"{self.entity_description.key} of type {dtype} is {value}")
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                "%s, of type %s is %s",
+                self.entity_description.key,
+                dtype,
+                value,
+            )
         return value
 
 
 class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
-    """Measurement Sensor for Kidde HomeSafe."""
+    """Measurement Sensor for Kidde HomeSafe.
+
+    We expect the Kidde API to report sensor output as a dictionary containing
+    a float or intenger value, a string qualitative status string, and a units
+    string. For example: "tvoc": { "value": 605.09, "status": "Moderate",
+    "Unit": "ppb"}.
+
+    """
 
     @property
     def state_class(self) -> str:
+        """Return the state class of sensor"""
         return SensorStateClass.MEASUREMENT
 
     @property
-    def native_value(self) -> float:
+    def native_value(self) -> float | None:
         """Return the native value of the sensor."""
-        return self.kidde_device.get(self.entity_description.key).get("value")
+        entity_dict = self.kidde_device.get(self.entity_description.key)
+        if isinstance(entity_dict, dict):
+            sensor_value = entity_dict.get(KEY_VALUE)
+        else:
+            ktype = type(entity_dict)
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.warning(
+                    "Unexpected type [%s], expected entity dict for [%s]",
+                    ktype,
+                    self.entity_description.key,
+                )
+            sensor_value = None
+        return sensor_value
 
     @property
-    def native_unit_of_measurement(self) -> string:
+    def native_unit_of_measurement(self) -> str | None:
         """Return the native unit of measurement of the sensor."""
-        match self.kidde_device.get(self.entity_description.key).get("Unit").upper():
+        entity_dict = self.kidde_device.get(self.entity_description.key)
+
+        if not isinstance(entity_dict, dict):
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.warning(
+                    "Unexpected type [%s], expected entity dict for [%s]",
+                    type(entity_dict),
+                    self.entity_description.key,
+                )
+            return None
+
+        entity_unit = entity_dict.get(KEY_UNIT, "").upper()
+
+        match entity_unit:
             case "C":
                 return UnitOfTemperature.CELSIUS
             case "F":
@@ -243,11 +302,28 @@ class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
             case "V":
                 return UnitOfElectricPotential.VOLT
             case _:
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.warning(
+                        "Unknown unit [%s] for sensor [%s]",
+                        entity_unit,
+                        self.entity_description.key,
+                    )
                 return None
 
     @property
     def extra_state_attributes(self) -> dict:
         """Return additional attributes for the value sensor (Status)."""
-        return {
-            "Status": self.kidde_device.get(self.entity_description.key).get("status")
-        }
+        entity_dict = self.kidde_device.get(self.entity_description.key)
+        attribute_dict = None
+        if isinstance(entity_dict, dict):
+            attribute_dict = {"Status": entity_dict.get(KEY_STATUS)}
+        else:
+            ktype = type(entity_dict)
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.warning(
+                    "Unexpected type [%s], expected state attributes dict for [%s]",
+                    ktype,
+                    self.entity_description.key,
+                )
+            attribute_dict = {"Status": None}
+        return attribute_dict
