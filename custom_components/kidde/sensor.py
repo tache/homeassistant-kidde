@@ -44,6 +44,12 @@ logger = logging.getLogger(__name__)
 
 _TIMESTAMP_DESCRIPTIONS = (
     SensorEntityDescription(
+        key="last_seen",
+        icon="mdi:home-clock",
+        name="Last Seen",
+        device_class=SensorDeviceClass.TIMESTAMP,
+    ),
+    SensorEntityDescription(
         key="last_test_time",
         icon="mdi:home-clock",
         name="Last Test Time",
@@ -53,12 +59,6 @@ _TIMESTAMP_DESCRIPTIONS = (
         key="iaq_last_test_time",
         icon="mdi:home-clock",
         name="IAQ Last Test Time",
-        device_class=SensorDeviceClass.TIMESTAMP,
-    ),
-    SensorEntityDescription(
-        key="last_seen",
-        icon="mdi:home-clock",
-        name="Last Seen",
         device_class=SensorDeviceClass.TIMESTAMP,
     ),
 )
@@ -98,6 +98,16 @@ _SENSOR_DESCRIPTIONS = (
         name="Weeks to replace",
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfTime.WEEKS,
+    ),
+    SensorEntityDescription(
+        key="ap_rssi",
+        icon="mdi:wifi-strength-3",
+        name="Signal strength",
+        native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS,
+        entity_registry_enabled_default=False,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        device_class=SensorDeviceClass.SIGNAL_STRENGTH,
     ),
     SensorEntityDescription(
         key="ssid",
@@ -168,16 +178,6 @@ _SENSOR_DESCRIPTIONS = (
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
-    ),
-    SensorEntityDescription(
-        key="ap_rssi",
-        icon="mdi:wifi-strength-3",
-        name="Signal strength",
-        native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS,
-        entity_registry_enabled_default=False,
-        state_class=SensorStateClass.MEASUREMENT,
-        entity_category=EntityCategory.DIAGNOSTIC,
-        device_class=SensorDeviceClass.SIGNAL_STRENGTH,
     ),
 )
 
