@@ -105,11 +105,14 @@ _BATTERY_SENSOR_DESCRIPTIONS = (
         key="battery_state",
         icon="mdi:battery",
         name="Battery State",
-        device_class=BinarySensorDeviceClass.BATTERY
+        device_class=BinarySensorDeviceClass.BATTERY,
     ),
 )
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback) -> None:
+
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback
+) -> None:
     """Set up the binary sensor platform."""
     coordinator: KiddeCoordinator = hass.data[DOMAIN][entry.entry_id]
     sensors: list[BinarySensorEntity] = []
@@ -129,18 +132,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_d
         for entity_description in _INVERSE_BINARY_SENSOR_DESCRIPTIONS:
             if entity_description.key in device_data:
                 sensors.append(
-                    KiddeInverseBinarySensorEntity(coordinator, device_id, entity_description)
+                    KiddeInverseBinarySensorEntity(
+                        coordinator, device_id, entity_description
+                    )
                 )
 
         for entity_description in _BATTERY_SENSOR_DESCRIPTIONS:
             if entity_description.key in device_data:
                 sensors.append(
-                    KiddeBatteryStateSensorEntity(coordinator, device_id, entity_description)
+                    KiddeBatteryStateSensorEntity(
+                        coordinator, device_id, entity_description
+                    )
                 )
 
     # NOTE: It is possible that sensors is an empty list. Is that OK?
 
     async_add_devices(sensors)
+
 
 class KiddeBinarySensorEntity(KiddeEntity, BinarySensorEntity):
     """Binary sensor for Kidde HomeSafe."""
@@ -150,6 +158,7 @@ class KiddeBinarySensorEntity(KiddeEntity, BinarySensorEntity):
         """Return the value of the binary sensor."""
         return self.kidde_device.get(self.entity_description.key)
 
+
 class KiddeInverseBinarySensorEntity(KiddeEntity, BinarySensorEntity):
     """Binary sensor for Kidde HomeSafe."""
 
@@ -157,6 +166,7 @@ class KiddeInverseBinarySensorEntity(KiddeEntity, BinarySensorEntity):
     def is_on(self) -> bool | None:
         """Return the value of the binary sensor."""
         return self.kidde_device.get(self.entity_description.key) == False
+
 
 class KiddeBatteryStateSensorEntity(KiddeEntity, BinarySensorEntity):
     """Binary sensor for Kidde HomeSafe."""

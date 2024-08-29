@@ -221,7 +221,9 @@ _SENSOR_MEASUREMENT_DESCRIPTIONS = (
 )
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback
+) -> None:
     """Set up the sensor platform."""
     coordinator: KiddeCoordinator = hass.data[DOMAIN][entry.entry_id]
     sensors: list[SensorEntity] = []
@@ -235,7 +237,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_d
         for entity_description in _TIMESTAMP_DESCRIPTIONS:
             if entity_description.key in device_data:
                 sensors.append(
-                    KiddeSensorTimestampEntity(coordinator, device_id, entity_description)
+                    KiddeSensorTimestampEntity(
+                        coordinator, device_id, entity_description
+                    )
                 )
 
         for entity_description in _SENSOR_DESCRIPTIONS:
@@ -247,7 +251,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_d
         for entity_description in _SENSOR_MEASUREMENT_DESCRIPTIONS:
             if entity_description.key in device_data:
                 sensors.append(
-                    KiddeSensorMeasurementEntity(coordinator, device_id, entity_description)
+                    KiddeSensorMeasurementEntity(
+                        coordinator, device_id, entity_description
+                    )
                 )
 
     # NOTE: It is possible that sensors is an empty list. Is that OK?
