@@ -55,9 +55,6 @@ _TIMESTAMP_DESCRIPTIONS = (
         name="IAQ Last Test Time",
         device_class=SensorDeviceClass.TIMESTAMP,
     ),
-)
-
-_COMMON_TIMESTAMP_DESCRIPTIONS = (
     SensorEntityDescription(
         key="last_seen",
         icon="mdi:home-clock",
@@ -66,7 +63,7 @@ _COMMON_TIMESTAMP_DESCRIPTIONS = (
     ),
 )
 
-_IAQ_SENSOR_DESCRIPTIONS = (
+_SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
         key="overall_iaq_status",
         icon="mdi:air-filter",
@@ -109,9 +106,6 @@ _IAQ_SENSOR_DESCRIPTIONS = (
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
-)
-
-_WATER_SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
         key="alarm_interval",
         icon="mdi:alarm-check",
@@ -175,9 +169,6 @@ _WATER_SENSOR_DESCRIPTIONS = (
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
     ),
-)
-
-_COMMON_SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
         key="ap_rssi",
         icon="mdi:wifi-strength-3",
@@ -190,7 +181,7 @@ _COMMON_SENSOR_DESCRIPTIONS = (
     ),
 )
 
-_MEASUREMENT_SENSOR_DESCRIPTIONS = (
+_SENSOR_MEASUREMENT_DESCRIPTIONS = (
     SensorEntityDescription(
         key="iaq_temperature",
         name="Indoor Temperature",
@@ -233,53 +224,33 @@ _MEASUREMENT_SENSOR_DESCRIPTIONS = (
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback) -> None:
     """Set up the sensor platform."""
     coordinator: KiddeCoordinator = hass.data[DOMAIN][entry.entry_id]
-    sensors = []
-    for device_id in coordinator.data.devices:
-        if logger.isEnabledFor(logging.DEBUG):
-          logger.debug(
-              "Checking model: [%s]",
-              coordinator.data.devices[device_id].get(KEY_MODEL, None),
-          )
+    sensors: list[SensorEntity] = []
 
-        # Add the sensors unique to each model
-        if coordinator.data.devices[device_id].get(KEY_MODEL) == "wifiiaqdetector":
-            for entity_description in _IAQ_SENSOR_DESCRIPTIONS:
-                sensors.append(
-                    KiddeSensorEntity(coordinator, device_id, entity_description)
-                )
-            for entity_description in _TIMESTAMP_DESCRIPTIONS:
+    for device_id, device_data in coordinator.data.devices.items():
+        logger.debug(
+            "Checking model: [%s]",
+            coordinator.data.devices[device_id].get(KEY_MODEL, "Unknown"),
+        )
+
+        for entity_description in _TIMESTAMP_DESCRIPTIONS:
+            if entity_description.key in device_data:
                 sensors.append(
                     KiddeSensorTimestampEntity(coordinator, device_id, entity_description)
                 )
-            if KEY_TEMPERATURE in coordinator.data.devices[device_id].get(KEY_CAPABILITIES) and coordinator.data.devices[device_id].get(KEY_IAQ):
-                # The unit also has an Indoor Air Quality Monitor
-                for measurement_entity_description in _MEASUREMENT_SENSOR_DESCRIPTIONS:
-                    sensors.append(
-                        KiddeSensorMeasurementEntity(
-                            coordinator, device_id, measurement_entity_description
-                        )
-                    )
-        elif coordinator.data.devices[device_id].get(KEY_MODEL, None) == "waterleakdetector":
-            for entity_description in _WATER_SENSOR_DESCRIPTIONS:
+
+        for entity_description in _SENSOR_DESCRIPTIONS:
+            if entity_description.key in device_data:
                 sensors.append(
                     KiddeSensorEntity(coordinator, device_id, entity_description)
                 )
-        else:
-            if logger.isEnabledFor(logging.DEBUG):
-              logger.warning(
-                  "Unexpected model [%s]",
-                  coordinator.data.devices[device_id].get(KEY_MODEL, None),
-              )
 
-        # Add the common sensors
-        for entity_description in _COMMON_SENSOR_DESCRIPTIONS:
-            sensors.append(
-                KiddeSensorEntity(coordinator, device_id, entity_description)
-            )
-        for entity_description in _COMMON_TIMESTAMP_DESCRIPTIONS:
-            sensors.append(
-                KiddeSensorTimestampEntity(coordinator, device_id, entity_description)
-            )
+        for entity_description in _SENSOR_MEASUREMENT_DESCRIPTIONS:
+            if entity_description.key in device_data:
+                sensors.append(
+                    KiddeSensorMeasurementEntity(coordinator, device_id, entity_description)
+                )
+
+    # NOTE: It is possible that sensors is an empty list. Is that OK?
 
     async_add_devices(sensors)
 

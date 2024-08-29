@@ -26,7 +26,7 @@ KEY_MODEL = "model"
 logger = logging.getLogger(__name__)
 
 
-_IAQ_BINARY_SENSOR_DESCRIPTIONS = (
+_BINARY_SENSOR_DESCRIPTIONS = (
     BinarySensorEntityDescription(
         key="smoke_alarm",
         icon="mdi:smoke-detector-variant-alert",
@@ -57,9 +57,6 @@ _IAQ_BINARY_SENSOR_DESCRIPTIONS = (
         entity_category=EntityCategory.DIAGNOSTIC,
         device_class=BinarySensorDeviceClass.SMOKE,
     ),
-)
-
-_COMMON_BINARY_SENSOR_DESCRIPTIONS = (
     BinarySensorEntityDescription(
         key="contact_lost",
         icon="mdi:smoke-detector-variant-off",
@@ -71,9 +68,6 @@ _COMMON_BINARY_SENSOR_DESCRIPTIONS = (
         name="Lost",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
-)
-
-_WATER_BINARY_SENSOR_DESCRIPTIONS = (
     BinarySensorEntityDescription(
         key="water_alarm",
         icon="mdi:water-alert",
@@ -115,54 +109,36 @@ _BATTERY_SENSOR_DESCRIPTIONS = (
     ),
 )
 
-
-def add_sensors(
-    coordinator: KiddeCoordinator,
-    device_id: str,
-    descriptions: tuple[BinarySensorEntityDescription],
-    sensor_class: type[BinarySensorEntity],
-    sensors: list[BinarySensorEntity]
-) -> None:
-    """Add sensors to the sensors list based on entity descriptions and sensor class."""
-    sensors.extend(
-        sensor_class(coordinator, device_id, entity_description)
-        for entity_description in descriptions
-    )
-
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback) -> None:
     """Set up the binary sensor platform."""
     coordinator: KiddeCoordinator = hass.data[DOMAIN][entry.entry_id]
-    sensors = []
-
-    model_sensor_mapping = {
-        "wifiiaqdetector": _IAQ_BINARY_SENSOR_DESCRIPTIONS,
-        "waterleakdetector": _WATER_BINARY_SENSOR_DESCRIPTIONS,
-    }
+    sensors: list[BinarySensorEntity] = []
 
     for device_id, device_data in coordinator.data.devices.items():
-        model = device_data.get(KEY_MODEL)
+        logger.debug(
+            "Checking model: [%s]",
+            coordinator.data.devices[device_id].get(KEY_MODEL, "Unknown"),
+        )
 
-        if model is None:
-            logger.warning("No model found for device [%s]", device_id)
-            continue
+        for entity_description in _BINARY_SENSOR_DESCRIPTIONS:
+            if entity_description.key in device_data:
+                sensors.append(
+                    KiddeBinarySensorEntity(coordinator, device_id, entity_description)
+                )
 
-        entity_descriptions = model_sensor_mapping.get(model)
+        for entity_description in _INVERSE_BINARY_SENSOR_DESCRIPTIONS:
+            if entity_description.key in device_data:
+                sensors.append(
+                    KiddeInverseBinarySensorEntity(coordinator, device_id, entity_description)
+                )
 
-        if entity_descriptions is not None:
-            # Add model-specific sensors
-            add_sensors(coordinator, device_id, entity_descriptions, KiddeBinarySensorEntity, sensors)
-        else:
-            logger.warning("Unexpected model [%s]", model)
+        for entity_description in _BATTERY_SENSOR_DESCRIPTIONS:
+            if entity_description.key in device_data:
+                sensors.append(
+                    KiddeBatteryStateSensorEntity(coordinator, device_id, entity_description)
+                )
 
-        # Add common sensors regardless of model
-        sensor_mapping = [
-            (_COMMON_BINARY_SENSOR_DESCRIPTIONS, KiddeBinarySensorEntity),
-            (_BATTERY_SENSOR_DESCRIPTIONS, KiddeBatteryStateSensorEntity),
-            (_INVERSE_BINARY_SENSOR_DESCRIPTIONS, KiddeInverseBinarySensorEntity),
-        ]
-
-        for descriptions, sensor_class in sensor_mapping:
-            add_sensors(coordinator, device_id, descriptions, sensor_class, sensors)
+    # NOTE: It is possible that sensors is an empty list. Is that OK?
 
     async_add_devices(sensors)
 
