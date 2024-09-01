@@ -1,5 +1,7 @@
 """Entity base class for Kidde HomeSafe."""
+
 from __future__ import annotations
+
 import logging
 
 from homeassistant.helpers.entity import DeviceInfo
@@ -40,19 +42,21 @@ class KiddeEntity(CoordinatorEntity[KiddeCoordinator]):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id of the device."""
         return f"{self.kidde_device['label']}_{self.entity_description.key}"
 
     @property
     def device_info(self) -> DeviceInfo | None:
+        """Return the device information of the device."""
         device = self.kidde_device
 
         model_type = device.get(KEY_MODEL, None)
         model_string = ""
         match model_type:
             case "wifiiaqdetector":
-                model_string = f'WiFi IAQ Detector ({model_type})'
+                model_string = f"WiFi IAQ Detector ({model_type})"
             case "waterleakdetector":
-                model_string = f'Water Leak + Freeze Detector ({model_type})'
+                model_string = f"Water Leak + Freeze Detector ({model_type})"
             case _:
                 model_string = "{model_type}"
                 if logger.isEnabledFor(logging.DEBUG):

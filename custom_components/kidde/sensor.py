@@ -1,9 +1,9 @@
 """Sensor platform for Kidde Homesafe integration."""
 
 from __future__ import annotations
-import logging
+
 import datetime
-import typing
+import logging
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -326,7 +326,7 @@ class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
 
     @property
     def state_class(self) -> str:
-        """Return the state class of sensor"""
+        """Return the state class of sensor."""
         return SensorStateClass.MEASUREMENT
 
     @property

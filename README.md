@@ -16,7 +16,7 @@ Devices supported include
 - Smoke + Carbon Monoxide Alarm with smart features (P4010ACSCO-WF)
 - Smoke Alarm with smart features (P4010ACS-WF)
 - Water Leak + Freeze Detector (60WLDR-W) (verified)
-- Carbon Monoxide Alarm with Indoor Air Quality Monitor (KN-COP-DP-10YL-AQ-WF)
+- Carbon Monoxide Alarm with Indoor Air Quality Monitor (KN-COP-DP-10YL-AQ-WF) (verified)
 
 ## HACS Installation
 

@@ -13,7 +13,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.const import (
     EntityCategory,
-    UnitOfTime,
 )
 
 from .const import DOMAIN

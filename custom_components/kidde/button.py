@@ -1,6 +1,8 @@
 """Button platform for Kidde Homesafe integration."""
+
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 
 from homeassistant.components.button import ButtonEntity
@@ -16,6 +18,9 @@ from .entity import KiddeEntity
 
 # Constants for dictionary keys
 KEY_MODEL = "model"
+
+logger = logging.getLogger(__name__)
+
 
 @dataclass
 class KiddeButtonEntityDescriptionMixin:
