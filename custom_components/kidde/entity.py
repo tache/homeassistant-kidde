@@ -60,7 +60,7 @@ class KiddeEntity(CoordinatorEntity[KiddeCoordinator]):
             case _:
                 model_string = f"{model_type}"
                 if logger.isEnabledFor(logging.DEBUG):
-                    logger.WARNING(
+                    logger.warning(
                         "Unverified Kidde Device Model: [%s] ... Please send Kidde device data to maintainers.",
                         model_type,
                     )

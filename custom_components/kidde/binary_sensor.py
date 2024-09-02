@@ -117,10 +117,11 @@ async def async_setup_entry(
     sensors: list[BinarySensorEntity] = []
 
     for device_id, device_data in coordinator.data.devices.items():
-        logger.debug(
-            "Checking model: [%s]",
-            coordinator.data.devices[device_id].get(KEY_MODEL, "Unknown"),
-        )
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                "Checking model: [%s]",
+                coordinator.data.devices[device_id].get(KEY_MODEL, "Unknown"),
+            )
 
         for entity_description in _BINARY_SENSOR_DESCRIPTIONS:
             if entity_description.key in device_data:
