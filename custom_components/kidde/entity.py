@@ -58,7 +58,7 @@ class KiddeEntity(CoordinatorEntity[KiddeCoordinator]):
             case "waterleakdetector":
                 model_string = f"Water Leak + Freeze Detector ({model_type})"
             case _:
-                model_string = "{model_type}"
+                model_string = f"{model_type}"
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.WARNING(
                         "Unverified Kidde Device Model: [%s] ... Please send Kidde device data to maintainers.",
