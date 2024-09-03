@@ -6,16 +6,14 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from homeassistant.components.switch import SwitchEntity
-from homeassistant.components.switch import SwitchEntityDescription
+from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .coordinator import KiddeCoordinator
-from .entity import KiddeCommand
-from .entity import KiddeEntity
+from .entity import KiddeCommand, KiddeEntity
 
 # Constants for dictionary keys
 KEY_MODEL = "model"
@@ -53,20 +51,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_d
     """Set up the switch platform."""
     coordinator: KiddeCoordinator = hass.data[DOMAIN][entry.entry_id]
     sensors = []
+
     for device_id in coordinator.data.devices:
-        if coordinator.data.devices[device_id].get(KEY_MODEL, None) == "wifiiaqdetector":
-            for entity_description in _SWITCH_DESCRIPTIONS:
-                sensors.append(
-                    KiddeSwitchEntity(coordinator, device_id, entity_description)
-                )
-        elif coordinator.data.devices[device_id].get(KEY_MODEL, None) == "waterleakdetector":
-            pass # TODO: fill this later
-        else:
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.warning(
-                    "Unexpected model [%s]",
-                    coordinator.data.devices[device_id].get(KEY_MODEL),
-                )
+        match coordinator.data.devices[device_id].get(KEY_MODEL, None):
+            case "wifiiaqdetector" | "wifidetector":
+                for entity_description in _SWITCH_DESCRIPTIONS:
+                    sensors.append(
+                        KiddeSwitchEntity(coordinator, device_id, entity_description)
+                    )
+
+            case "waterleakdetector" | "cowifidetector":
+                pass  # TODO: Switches for the other devices?
+
+            case _:
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.warning(
+                        "Unverified Kidde Device Model: [%s]",
+                        coordinator.data.devices[device_id].get(KEY_MODEL, None),
+                    )
+
     async_add_devices(sensors)
 
 
