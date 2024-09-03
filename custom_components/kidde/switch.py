@@ -50,27 +50,24 @@ _SWITCH_DESCRIPTIONS = (
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback) -> None:
     """Set up the switch platform."""
     coordinator: KiddeCoordinator = hass.data[DOMAIN][entry.entry_id]
-    sensors = []
+    switches: list[SwitchEntity] = []
 
-    for device_id in coordinator.data.devices:
-        match coordinator.data.devices[device_id].get(KEY_MODEL, None):
-            case "wifiiaqdetector" | "wifidetector":
-                for entity_description in _SWITCH_DESCRIPTIONS:
-                    sensors.append(
-                        KiddeSwitchEntity(coordinator, device_id, entity_description)
+    for device_id, device_data in coordinator.data.devices.items():
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                "Checking model: [%s]",
+                coordinator.data.devices[device_id].get(KEY_MODEL, "Unknown"),
+            )
+
+        for entity_description in _SWITCH_DESCRIPTIONS:
+            if entity_description.key in device_data:
+                switches.append(
+                    KiddeSwitchEntity(
+                        coordinator, device_id, entity_description
                     )
+                )
 
-            case "waterleakdetector" | "cowifidetector":
-                pass  # TODO: Switches for the other devices?
-
-            case _:
-                if logger.isEnabledFor(logging.DEBUG):
-                    logger.warning(
-                        "Unverified Kidde Device Model: [%s]",
-                        coordinator.data.devices[device_id].get(KEY_MODEL, None),
-                    )
-
-    async_add_devices(sensors)
+    async_add_devices(switches)
 
 
 class KiddeSwitchEntity(KiddeEntity, SwitchEntity):
