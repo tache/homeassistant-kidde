@@ -12,19 +12,19 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.const import (
     CONCENTRATION_PARTS_PER_BILLION,
     CONCENTRATION_PARTS_PER_MILLION,
-    EntityCategory,
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS,
+    EntityCategory,
     UnitOfElectricPotential,
     UnitOfPressure,
     UnitOfTemperature,
     UnitOfTime,
 )
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .coordinator import KiddeCoordinator
@@ -289,7 +289,7 @@ class KiddeSensorTimestampEntity(KiddeEntity, SensorEntity):
         stripped = value.strip("Z").split(".")[0]
         try:
             return datetime.datetime.strptime(stripped, "%Y-%m-%dT%H:%M:%S").replace(
-                tzinfo=datetime.timezone.utc
+                tzinfo=datetime.UTC
             )
         except ValueError as e:
             if logger.isEnabledFor(logging.DEBUG):

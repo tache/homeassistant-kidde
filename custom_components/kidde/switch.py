@@ -47,7 +47,9 @@ _SWITCH_DESCRIPTIONS = (
 )
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback
+) -> None:
     """Set up the switch platform."""
     coordinator: KiddeCoordinator = hass.data[DOMAIN][entry.entry_id]
     switches: list[SwitchEntity] = []
@@ -62,9 +64,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_d
         for entity_description in _SWITCH_DESCRIPTIONS:
             if entity_description.key in device_data:
                 switches.append(
-                    KiddeSwitchEntity(
-                        coordinator, device_id, entity_description
-                    )
+                    KiddeSwitchEntity(coordinator, device_id, entity_description)
                 )
 
     async_add_devices(switches)

@@ -1,12 +1,16 @@
 {
   "domain": "kidde",
   "name": "Kidde HomeSafe",
-  "codeowners": ["@tache"],
+  "codeowners": [
+    "@tache"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/tache/homeassistant-kidde",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/tache/homeassistant-kidde/issues",
-  "requirements": ["kidde-homesafe"],
+  "requirements": [
+    "kidde-homesafe"
+  ],
   "version": "0.0.4"
 }

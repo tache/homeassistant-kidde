@@ -52,7 +52,7 @@ class KiddeEntity(CoordinatorEntity[KiddeCoordinator]):
         model_string = ""
         match model_type:
             case "wifiiaqdetector":
-                model_string = f"Smoke IAQ Detector ({model_type})"
+                model_string = f"Smoke Detector with IAQ ({model_type})"
             case "waterleakdetector":
                 model_string = f"Water Leak + Freeze Detector ({model_type})"
             case "wifidetector":

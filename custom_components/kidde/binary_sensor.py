@@ -1,6 +1,7 @@
 """Binary sensor platform for Kidde Homesafe integration."""
 
 from __future__ import annotations
+
 import logging
 
 from homeassistant.components.binary_sensor import (
@@ -9,11 +10,11 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.const import (
     EntityCategory,
 )
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .coordinator import KiddeCoordinator
@@ -165,7 +166,7 @@ class KiddeInverseBinarySensorEntity(KiddeEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         """Return the value of the binary sensor."""
-        return self.kidde_device.get(self.entity_description.key) == False
+        return not self.kidde_device.get(self.entity_description.key)
 
 
 class KiddeBatteryStateSensorEntity(KiddeEntity, BinarySensorEntity):
