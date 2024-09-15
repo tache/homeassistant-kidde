@@ -1,4 +1,5 @@
 """Config flow for Kidde HomeSafe integration."""
+
 from __future__ import annotations
 
 import logging
@@ -7,8 +8,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.data_entry_flow import FlowResult
-from kidde_homesafe import KiddeClient
-from kidde_homesafe import KiddeClientAuthError
+from kidde_homesafe import KiddeClient, KiddeClientAuthError
 
 from .const import DOMAIN
 

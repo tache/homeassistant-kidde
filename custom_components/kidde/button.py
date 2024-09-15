@@ -1,18 +1,23 @@
 """Button platform for Kidde Homesafe integration."""
+
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 
-from homeassistant.components.button import ButtonEntity
-from homeassistant.components.button import ButtonEntityDescription
+from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .coordinator import KiddeCoordinator
-from .entity import KiddeCommand
-from .entity import KiddeEntity
+from .entity import KiddeCommand, KiddeEntity
+
+# Constants for dictionary keys
+KEY_MODEL = "model"
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -51,11 +56,25 @@ async def async_setup_entry(
     """Set up the button platform."""
     coordinator: KiddeCoordinator = hass.data[DOMAIN][entry.entry_id]
     sensors = []
+
     for device_id in coordinator.data.devices:
-        for entity_description in _BUTTON_DESCRIPTIONS:
-            sensors.append(
-                KiddeButtonEntity(coordinator, device_id, entity_description)
-            )
+        match coordinator.data.devices[device_id].get(KEY_MODEL, None):
+            case "wifiiaqdetector" | "wifidetector":
+                for entity_description in _BUTTON_DESCRIPTIONS:
+                    sensors.append(
+                        KiddeButtonEntity(coordinator, device_id, entity_description)
+                    )
+
+            case "waterleakdetector" | "cowifidetector":
+                pass  # TODO: Buttons for the other devices?
+
+            case _:
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.warning(
+                        "Unverified Kidde Device Model: [%s]",
+                        coordinator.data.devices[device_id].get(KEY_MODEL, None),
+                    )
+
     async_add_devices(sensors)
 
 

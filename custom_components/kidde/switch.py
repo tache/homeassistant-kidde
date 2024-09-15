@@ -1,19 +1,24 @@
 """Switch platform for Kidde Homesafe integration."""
+
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any
 
-from homeassistant.components.switch import SwitchEntity
-from homeassistant.components.switch import SwitchEntityDescription
+from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .coordinator import KiddeCoordinator
-from .entity import KiddeCommand
-from .entity import KiddeEntity
+from .entity import KiddeCommand, KiddeEntity
+
+# Constants for dictionary keys
+KEY_MODEL = "model"
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -47,13 +52,22 @@ async def async_setup_entry(
 ) -> None:
     """Set up the switch platform."""
     coordinator: KiddeCoordinator = hass.data[DOMAIN][entry.entry_id]
-    sensors = []
-    for device_id in coordinator.data.devices:
-        for entity_description in _SWITCH_DESCRIPTIONS:
-            sensors.append(
-                KiddeSwitchEntity(coordinator, device_id, entity_description)
+    switches: list[SwitchEntity] = []
+
+    for device_id, device_data in coordinator.data.devices.items():
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                "Checking model: [%s]",
+                coordinator.data.devices[device_id].get(KEY_MODEL, "Unknown"),
             )
-    async_add_devices(sensors)
+
+        for entity_description in _SWITCH_DESCRIPTIONS:
+            if entity_description.key in device_data:
+                switches.append(
+                    KiddeSwitchEntity(coordinator, device_id, entity_description)
+                )
+
+    async_add_devices(switches)
 
 
 class KiddeSwitchEntity(KiddeEntity, SwitchEntity):
