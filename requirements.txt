@@ -1,4 +1,4 @@
 colorlog==6.9.0
 homeassistant
 pip
-ruff==0.7.2
+ruff==0.7.4
