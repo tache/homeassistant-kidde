@@ -21,11 +21,12 @@ Devices supported include
 ## HACS Installation
 
 1. Follow the [HACS instructions][hacs_custom_repo] for a custom repo, using https://github.com/tache/homeassistant-kidde as the URL
-1. Restart your HomeAssistant instance
-1. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Kidde"
-1. Configuration is done in the UI
+2. The **Kidde HomeSafe** integration should now show up in HACS; click on it and select **Download** --> **Download**
+3. Restart Home Assistant
+4. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Kidde"
+5. Configuration is done in the UI
 
-You may get a notification from the Kidde app once you complete setup; either ignore or `ALLOW` it. Selecting `DENY`` may prevent this integration from updating.
+You may get a notification from the Kidde app once you complete setup; either ignore or `ALLOW` it. Selecting `DENY` may prevent this integration from updating.
 
 <!---->
 
