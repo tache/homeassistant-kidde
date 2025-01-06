@@ -371,7 +371,7 @@ class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
             case "%RH":
                 return PERCENTAGE
             case "HPA":
-                return UnitOfPressure.HPA
+                return UnitOfPressure.PA
             case "PPB":
                 return CONCENTRATION_PARTS_PER_BILLION
             case "PPM":
