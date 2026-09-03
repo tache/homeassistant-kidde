@@ -35,3 +35,24 @@ jobs:
           category: "integration"
           # Remove this 'ignore' key when you have added brand images for your integration to https://github.com/home-assistant/brands
           ignore: "brands"
+
+  test:
+    name: "Lint and Test"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout the repository"
+        uses: "actions/checkout@v6.0.2"
+
+      - name: "Set up Python"
+        uses: "actions/setup-python@v5"
+        with:
+          python-version: "3.13"
+
+      - name: "Install dependencies"
+        run: "pip install -r requirements-test.txt"
+
+      - name: "Run ruff"
+        run: "ruff check custom_components/kidde"
+
+      - name: "Run pytest"
+        run: "pytest"
