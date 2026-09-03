@@ -178,10 +178,10 @@ rules:
       Could add repairs for auth failures, device offline, end-of-life warnings.
 
   stale-devices:
-    status: not_done
+    status: done
     comment: |
-      No automatic cleanup of offline/removed devices.
-      Should implement device registry cleanup for lost devices.
+      async_remove_config_entry_device allows removing a device once Kidde
+      no longer reports it, and refuses removal while it's still active.
 
   # ========== PLATINUM TIER ==========
 
