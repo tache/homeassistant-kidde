@@ -7,6 +7,14 @@
           "password": "[%key:common::config_flow::data::password%]",
           "update_interval_seconds": "[%key:common::config_flow::data::update_interval_seconds%]"
         }
+      },
+      "reauth_confirm": {
+        "title": "[%key:common::config_flow::title::reauth%]",
+        "description": "The Kidde HomeSafe integration needs to re-authenticate your account: {account}",
+        "data": {
+          "email": "[%key:common::config_flow::data::email%]",
+          "password": "[%key:common::config_flow::data::password%]"
+        }
       }
     },
     "error": {
@@ -15,7 +23,8 @@
       "invalid_update_interval": "[%key:common::config_flow::error::invalid_update_interval%]"
     },
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
+      "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
     }
   }
 }
