@@ -7,6 +7,14 @@
           "password": "Password",
           "update_interval_seconds": "Update Interval (seconds)"
         }
+      },
+      "reauth_confirm": {
+        "title": "Reauthenticate Integration",
+        "description": "The Kidde HomeSafe integration needs to re-authenticate your account: {account}",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
       }
     },
     "error": {
@@ -15,7 +23,8 @@
       "invalid_update_interval": "Invalid update interval, must be >= 5 seconds."
     },
     "abort": {
-      "already_configured": "Already configured."
+      "already_configured": "Already configured.",
+      "reauth_successful": "Re-authentication was successful."
     }
   }
 }

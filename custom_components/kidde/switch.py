@@ -15,6 +15,8 @@ from .const import DOMAIN
 from .coordinator import KiddeCoordinator
 from .entity import KiddeCommand, KiddeEntity
 
+PARALLEL_UPDATES = 1
+
 # Constants for dictionary keys
 KEY_MODEL = "model"
 

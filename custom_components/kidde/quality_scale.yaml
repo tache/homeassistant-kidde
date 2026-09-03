@@ -1,0 +1,203 @@
+# Home Assistant Integration Quality Scale
+# https://developers.home-assistant.io/docs/core/integration-quality-scale/
+
+rules:
+  # ========== BRONZE TIER ==========
+
+  action-setup:
+    status: exempt
+    comment: |
+      This integration has no custom service actions beyond entity controls.
+      All functionality is provided through standard entity platforms.
+
+  appropriate-polling:
+    status: done
+    comment: |
+      Configurable polling interval (minimum 5 seconds, default 30 seconds).
+      Set in config flow and passed to coordinator.
+
+  brands:
+    status: done
+    comment: |
+      Brand assets available in Home Assistant brands repository.
+
+  common-modules:
+    status: done
+    comment: |
+      Uses kidde-homesafe library for API communication.
+
+  config-flow:
+    status: done
+    comment: |
+      Full UI config flow with email/password auth and update interval setting.
+      Tests connection before creating entry. Prevents duplicates.
+
+  config-flow-test-coverage:
+    status: done
+    comment: |
+      Config flow tests in custom_components/kidde/tests/test_init.py
+
+  dependency-transparency:
+    status: done
+    comment: |
+      kidde-homesafe dependency listed in manifest.json requirements.
+
+  docs-actions:
+    status: exempt
+    comment: |
+      No custom service actions to document.
+
+  docs-high-level-description:
+    status: done
+    comment: |
+      README.md contains integration overview and device support.
+
+  docs-installation-instructions:
+    status: done
+    comment: |
+      README.md has HACS installation steps and setup instructions.
+
+  docs-removal-instructions:
+    status: done
+    comment: |
+      README.md includes troubleshooting with delete/re-add steps.
+
+  entity-event-setup:
+    status: exempt
+    comment: |
+      Integration uses polling coordinator, no event subscriptions.
+
+  entity-unique-id:
+    status: done
+    comment: |
+      All entities have unique IDs based on device label + entity key.
+
+  has-entity-name:
+    status: done
+    comment: |
+      All entities use _attr_has_entity_name = True in entity.py
+
+  runtime-data:
+    status: done
+    comment: |
+      Uses hass.data[DOMAIN][entry.entry_id] pattern for coordinator storage.
+
+  test-before-configure:
+    status: done
+    comment: |
+      Config flow tests authentication with KiddeClient.from_login() before entry creation.
+
+  test-before-setup:
+    status: done
+    comment: |
+      Auth tested in config flow, coordinator.async_refresh() validates on setup.
+
+  unique-config-entry:
+    status: done
+    comment: |
+      Config flow uses user email as unique identifier, prevents duplicates.
+
+  # ========== SILVER TIER ==========
+
+  action-exceptions:
+    status: exempt
+    comment: |
+      No custom service actions.
+
+  config-entry-unloading:
+    status: done
+    comment: |
+      async_unload_entry properly unloads platforms and cleans up hass.data.
+
+  docs-configuration-parameters:
+    status: not_done
+    comment: |
+      README documents setup but not all config parameters (update_interval).
+      Need to add configuration options section.
+
+  integration-owner:
+    status: done
+    comment: |
+      @tache listed as codeowner in manifest.json
+
+  log-when-unavailable:
+    status: done
+    comment: |
+      Coordinator logs UpdateFailed and raises ConfigEntryAuthFailed on auth errors.
+
+  parallel-updates:
+    status: not_done
+    comment: |
+      PARALLEL_UPDATES constant not set in any platform files.
+      Should add to prevent concurrent update conflicts.
+
+  reauthentication-flow:
+    status: not_done
+    comment: |
+      ConfigEntryAuthFailed raised but no reauth flow implemented.
+      Need async_step_reauth in config_flow.py.
+
+  # ========== GOLD TIER ==========
+
+  devices:
+    status: done
+    comment: |
+      DeviceInfo created for all devices with proper identifiers, model, manufacturer.
+
+  diagnostics:
+    status: not_done
+    comment: |
+      No diagnostics platform implemented.
+      Should add async_get_config_entry_diagnostics.
+
+  docs-supported-devices:
+    status: done
+    comment: |
+      README lists all supported device models (6 models documented).
+
+  docs-use-cases:
+    status: not_done
+    comment: |
+      No specific use case examples or automation guides.
+      Could add example automations for smoke/CO/water leak scenarios.
+
+  entity-category:
+    status: done
+    comment: |
+      Diagnostic entities properly tagged with EntityCategory.DIAGNOSTIC.
+
+  entity-device-class:
+    status: done
+    comment: |
+      All entities use appropriate device classes (SMOKE, CO, TEMPERATURE, etc).
+
+  repair-issues:
+    status: not_done
+    comment: |
+      No repair flow implemented.
+      Could add repairs for auth failures, device offline, end-of-life warnings.
+
+  stale-devices:
+    status: done
+    comment: |
+      async_remove_config_entry_device allows removing a device once Kidde
+      no longer reports it, and refuses removal while it's still active.
+
+  # ========== PLATINUM TIER ==========
+
+  async-dependency:
+    status: done
+    comment: |
+      kidde-homesafe library is async (uses aiohttp).
+
+  inject-websession:
+    status: not_done
+    comment: |
+      KiddeClient doesn't accept aiohttp.ClientSession.
+      Library creates its own session.
+
+  strict-typing:
+    status: not_done
+    comment: |
+      Type hints present but not strict.
+      No mypy configuration or --strict checking.

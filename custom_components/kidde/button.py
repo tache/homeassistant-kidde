@@ -14,6 +14,8 @@ from .const import DOMAIN
 from .coordinator import KiddeCoordinator
 from .entity import KiddeCommand, KiddeEntity
 
+PARALLEL_UPDATES = 1
+
 # Constants for dictionary keys
 KEY_MODEL = "model"
 
@@ -58,21 +60,25 @@ async def async_setup_entry(
     sensors = []
 
     for device_id in coordinator.data.devices:
-        match coordinator.data.devices[device_id].get(KEY_MODEL, None):
-            case "wifiiaqdetector" | "wifidetector":
+        model = coordinator.data.devices[device_id].get(KEY_MODEL, None)
+
+        match model:
+            case "wifiiaqdetector" | "wifidetector" | "cowifidetector":
+                # Alarm devices support Test and Hush buttons
                 for entity_description in _BUTTON_DESCRIPTIONS:
                     sensors.append(
                         KiddeButtonEntity(coordinator, device_id, entity_description)
                     )
 
-            case "waterleakdetector" | "cowifidetector":
-                pass  # TODO: Buttons for the other devices?
+            case "waterleakdetector":
+                # Water leak detectors are passive sensors, no alarm buttons
+                pass
 
             case _:
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.warning(
                         "Unverified Kidde Device Model: [%s]",
-                        coordinator.data.devices[device_id].get(KEY_MODEL, None),
+                        model,
                     )
 
     async_add_devices(sensors)

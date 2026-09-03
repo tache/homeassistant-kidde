@@ -20,6 +20,8 @@ from .const import DOMAIN
 from .coordinator import KiddeCoordinator
 from .entity import KiddeEntity
 
+PARALLEL_UPDATES = 1
+
 # Constants for dictionary keys
 KEY_MODEL = "model"
 
@@ -88,6 +90,11 @@ _BINARY_SENSOR_DESCRIPTIONS = (
         icon="mdi:history",
         name="Reset Flag",
         entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    BinarySensorEntityDescription(
+        key="locate_active",
+        icon="mdi:map-marker-alert",
+        name="Locate Active",
     ),
 )
 
