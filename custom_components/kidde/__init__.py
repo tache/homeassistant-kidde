@@ -20,7 +20,7 @@ PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
 ]
 
-logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -49,33 +49,32 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_remove_config_entry_device(
     hass: HomeAssistant, entry: ConfigEntry, device: DeviceEntry
 ) -> bool:
-    """Remove a Kidde device associated with a config entry."""
+    """Authorize removal of a device that Kidde no longer reports.
 
-    for identifier in device.identifiers:
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(
-                "Removing Device: [%s]",
-                identifier,
-            )
-            logger.debug(
-                "Entry ID: [%s]",
-                entry.entry_id,
-            )
-            logger.debug(
-                "Device ID: [%s]",
-                device.id,
-            )
-            logger.debug(
-                "Identifier in Devices: [%r]",
-                identifier[1] in hass.data[DOMAIN][entry.entry_id].data.devices,
-            )
-            for devi in hass.data[DOMAIN][entry.entry_id].data.devices:
-                logger.debug("Devices: [%s] [%s]", devi.entry_id)
+    Home Assistant calls this to decide whether the user is allowed to delete
+    ``device`` from the device registry; it does not perform the removal.
 
-        if (
-            identifier[0] == DOMAIN
-            and identifier[1] in hass.data[DOMAIN][entry.entry_id].data.devices
-        ):
-            return False
+    Removal is refused while Kidde still reports the device, because every
+    platform rebuilds its entities from the coordinator data on the next
+    reload and the device would immediately reappear. Devices missing from
+    the coordinator data are stale and may be removed. Removal also defaults
+    to allowed when that data cannot be read at all -- the entry is unloaded
+    or failed, or the initial refresh never succeeded -- so that a broken
+    entry does not trap orphaned devices in the registry.
+    """
+    entries: dict = hass.data.get(DOMAIN, {})
+    coordinator: KiddeCoordinator | None = entries.get(entry.entry_id)
+    dataset = coordinator.data if coordinator is not None else None
+    devices = dataset.devices if dataset is not None else None
 
-    return True
+    # KiddeDataset.devices is keyed by integer device id, so match on the
+    # label instead: that is what entity.py registers as the identifier.
+    known_labels = {
+        device_data.get("label") for device_data in (devices or {}).values()
+    }
+    _LOGGER.debug("Known Kidde device labels: %s", known_labels)
+
+    return not any(
+        domain == DOMAIN and identifier in known_labels
+        for domain, identifier in device.identifiers
+    )
