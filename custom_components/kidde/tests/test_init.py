@@ -9,11 +9,7 @@ from homeassistant.helpers.device_registry import DeviceEntry
 from kidde_homesafe import KiddeClient, KiddeDataset
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.kidde import (
-    async_remove_config_entry_device,
-    async_setup_entry,
-    async_unload_entry,
-)
+from custom_components.kidde import async_remove_config_entry_device
 from custom_components.kidde.const import DOMAIN
 from custom_components.kidde.coordinator import KiddeCoordinator
 
@@ -34,7 +30,8 @@ async def test_async_setup_entry(hass: HomeAssistant) -> None:
         "custom_components.kidde.coordinator.KiddeCoordinator.async_refresh",
         return_value=AsyncMock(),
     ) as mock_refresh:
-        assert await async_setup_entry(hass, entry) is True
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
         assert entry.state == ConfigEntryState.LOADED
         assert mock_refresh.call_count == 1
 
@@ -52,8 +49,10 @@ async def test_async_unload_entry(hass: HomeAssistant) -> None:
 
     # Mock setup and unload functions
     with patch("custom_components.kidde.PLATFORMS", ["sensor", "switch"]):
-        await async_setup_entry(hass, entry)
-        assert await async_unload_entry(hass, entry) is True
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        assert await hass.config_entries.async_unload(entry.entry_id)
+        await hass.async_block_till_done()
         assert entry.state == ConfigEntryState.NOT_LOADED
 
 
