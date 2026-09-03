@@ -17,4 +17,10 @@ config/*
 !config/configuration.yaml
 
 # Local Development Files
-dev-*
+dev-examples
+dev-other
+dev-releases
+.env
+ha_kidde_sync.sh
+kidde-calls.sh
+package-details.txt

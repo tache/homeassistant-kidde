@@ -30,11 +30,15 @@ from .const import DOMAIN
 from .coordinator import KiddeCoordinator
 from .entity import KiddeEntity
 
+PARALLEL_UPDATES = 1
+
 # Constants for dictionary keys
 KEY_MODEL = "model"
 KEY_VALUE = "value"
 KEY_STATUS = "status"
 KEY_UNIT = "Unit"
+KEY_SCORE = "score"
+KEY_CATEGORY = "category"
 KEY_CAPABILITIES = "capabilities"
 KEY_IAQ = "iaq"
 KEY_TEMPERATURE = "temperature"
@@ -297,6 +301,16 @@ _SENSOR_MEASUREMENT_DESCRIPTIONS = (
     ),
 )
 
+_SENSOR_SCORE_DESCRIPTIONS = (
+    SensorEntityDescription(
+        key="healthy_air",
+        name="Healthy Air Score",
+        icon="mdi:air-filter",
+        device_class=SensorDeviceClass.AQI,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+)
+
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback
@@ -349,6 +363,12 @@ async def async_setup_entry(
                     KiddeSensorMeasurementEntity(
                         coordinator, device_id, entity_description
                     )
+                )
+
+        for entity_description in _SENSOR_SCORE_DESCRIPTIONS:
+            if entity_description.key in device_data:
+                sensors.append(
+                    KiddeSensorScoreEntity(coordinator, device_id, entity_description)
                 )
 
     # NOTE: It is possible that sensors is an empty list. Is that OK?
@@ -557,3 +577,40 @@ class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
                 )
             attribute_dict = {"Status": None}
         return attribute_dict
+
+
+class KiddeSensorScoreEntity(KiddeEntity, SensorEntity):
+    """Score Sensor for Kidde HomeSafe.
+
+    We expect the Kidde API to report sensor output as a dictionary containing
+    a numeric score and a qualitative category string. For example:
+    "healthy_air": { "score": 87, "category": "Good" }.
+    """
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the native value of the sensor."""
+        entity_dict = self.kidde_device.get(self.entity_description.key)
+        if isinstance(entity_dict, dict):
+            return entity_dict.get(KEY_SCORE)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.warning(
+                "Unexpected type [%s], expected entity dict for [%s]",
+                type(entity_dict),
+                self.entity_description.key,
+            )
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Return additional attributes for the score sensor (Category)."""
+        entity_dict = self.kidde_device.get(self.entity_description.key)
+        if isinstance(entity_dict, dict):
+            return {"Category": entity_dict.get(KEY_CATEGORY)}
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.warning(
+                "Unexpected type [%s], expected state attributes dict for [%s]",
+                type(entity_dict),
+                self.entity_description.key,
+            )
+        return {"Category": None}
