@@ -51,6 +51,8 @@ class KiddeEntity(CoordinatorEntity[KiddeCoordinator]):
         model_type = device.get(KEY_MODEL, None)
         model_string = ""
         match model_type:
+            case "EssWFAC":
+                model_string = "Smoke + Carbon Monoxide Detector (EssWFAC)"
             case "wifiiaqdetector":
                 model_string = f"Smoke Detector with IAQ ({model_type})"
             case "waterleakdetector":

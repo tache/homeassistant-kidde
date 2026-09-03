@@ -182,4 +182,5 @@ class KiddeBatteryStateSensorEntity(KiddeEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         """Return the value of the binary sensor."""
-        return self.kidde_device.get(self.entity_description.key) != "ok"
+        value = self.kidde_device.get(self.entity_description.key)
+        return value not in ("Good", "ok", "Normal")

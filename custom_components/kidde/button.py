@@ -63,7 +63,7 @@ async def async_setup_entry(
         model = coordinator.data.devices[device_id].get(KEY_MODEL, None)
 
         match model:
-            case "wifiiaqdetector" | "wifidetector" | "cowifidetector":
+            case "wifiiaqdetector" | "wifidetector" | "cowifidetector" | "EssWFAC":
                 # Alarm devices support Test and Hush buttons
                 for entity_description in _BUTTON_DESCRIPTIONS:
                     sensors.append(

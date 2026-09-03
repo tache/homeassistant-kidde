@@ -99,6 +99,13 @@ _MAPPED_SENSOR_DESCRIPTIONS = {
 
 _SENSOR_DESCRIPTIONS = (
     SensorEntityDescription(
+        key="battery_state",
+        icon="mdi:battery-high",
+        name="Battery State",
+        device_class=SensorDeviceClass.ENUM,
+        options=["Good", "Low", "ok", "Normal", "Unknown"],
+    ),
+    SensorEntityDescription(
         key="overall_iaq_status",
         icon="mdi:air-filter",
         name="Overall Air Quality",
@@ -325,6 +332,11 @@ async def async_setup_entry(
                 "Checking model: [%s]",
                 coordinator.data.devices[device_id].get(KEY_MODEL, "Unknown"),
             )
+
+        # Normalize battery_state ("Good" / "ok")
+        if "battery_state" in device_data:
+            if device_data["battery_state"] == "ok":
+                device_data["battery_state"] = "Good"
 
         for entity_description in _LIST_SENSOR_DESCRIPTIONS:
             if entity_description.key in device_data:
