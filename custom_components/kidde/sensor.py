@@ -99,7 +99,7 @@ _MAPPED_SENSOR_DESCRIPTIONS = {
         "description": SensorEntityDescription(
             key="battery_state",
             icon="mdi:battery-high",
-            name="Battery State",
+            name="Battery State Detail",
             device_class=SensorDeviceClass.ENUM,
             options=["Good", "Low", "Normal", "Unknown", "Warning"],
         ),
