@@ -182,5 +182,9 @@ class KiddeBatteryStateSensorEntity(KiddeEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         """Return the value of the binary sensor."""
+        # This reads the raw API value directly, not the display value shown
+        # by the battery_state sensor in sensor.py (which maps "ok" to
+        # "Good"). Keep "ok" in this tuple even though the sensor entity
+        # never surfaces it anymore -- the API still returns it.
         value = self.kidde_device.get(self.entity_description.key)
         return value not in ("Good", "ok", "Normal")

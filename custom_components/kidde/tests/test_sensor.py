@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from custom_components.kidde.const import DOMAIN
 from custom_components.kidde.coordinator import KiddeCoordinator, KiddeDataset
 from custom_components.kidde.sensor import (
     KiddeSensorEntity,
@@ -92,6 +93,114 @@ class TestKiddeSensorMappedEntity:
         )
 
         assert entity.native_value is None
+
+    @pytest.mark.asyncio
+    async def test_mapped_entity_string_key_mapping(self, mock_coordinator):
+        """Test mapped entity translates a string raw value via a string-keyed mapping."""
+        from homeassistant.components.sensor import SensorEntityDescription
+
+        mock_coordinator.data.devices["device1"]["battery_state"] = "ok"
+
+        description = SensorEntityDescription(
+            key="battery_state",
+            name="Battery State",
+        )
+        mapping = {"ok": "Good", "warning": "Warning"}
+
+        entity = KiddeSensorMappedEntity(
+            mock_coordinator, "device1", description, mapping
+        )
+
+        assert entity.native_value == "Good"
+
+    @pytest.mark.asyncio
+    async def test_mapped_entity_unmapped_string_value(self, mock_coordinator):
+        """Test mapped entity returns None for a string value with no mapping entry.
+
+        This matters for ENUM sensors: Home Assistant raises if a value outside
+        the declared `options` is returned, but silently accepts None as "unknown".
+        """
+        from homeassistant.components.sensor import SensorEntityDescription
+
+        mock_coordinator.data.devices["device1"]["battery_state"] = "critical"
+
+        description = SensorEntityDescription(
+            key="battery_state",
+            name="Battery State",
+        )
+        mapping = {"ok": "Good", "warning": "Warning"}
+
+        entity = KiddeSensorMappedEntity(
+            mock_coordinator, "device1", description, mapping
+        )
+
+        assert entity.native_value is None
+
+    @pytest.mark.asyncio
+    async def test_mapped_entity_reflects_coordinator_refresh(self, mock_coordinator):
+        """Test mapped value stays in sync with fresh coordinator data on each poll."""
+        from homeassistant.components.sensor import SensorEntityDescription
+
+        mock_coordinator.data.devices["device1"]["battery_state"] = "ok"
+
+        description = SensorEntityDescription(
+            key="battery_state",
+            name="Battery State",
+        )
+        mapping = {"ok": "Good", "Low": "Low"}
+
+        entity = KiddeSensorMappedEntity(
+            mock_coordinator, "device1", description, mapping
+        )
+
+        assert entity.native_value == "Good"
+
+        # Simulate a coordinator refresh that replaces this device's data
+        # wholesale, as happens when new data is polled from the API.
+        mock_coordinator.data.devices["device1"] = {
+            **mock_coordinator.data.devices["device1"],
+            "battery_state": "Low",
+        }
+
+        assert entity.native_value == "Low"
+
+
+class TestBatteryStateSetup:
+    """Regression coverage for issue #128.
+
+    battery_state must not be normalized by mutating coordinator data once
+    at setup, since that mutation is silently overwritten by the next
+    coordinator refresh.
+    """
+
+    @pytest.mark.asyncio
+    async def test_battery_state_mapped_without_mutating_coordinator_data(
+        self, mock_coordinator
+    ):
+        """Battery state should map via the entity, not a setup-time mutation.
+
+        coordinator.data should remain an unmutated mirror of the raw API
+        response after async_setup_entry runs.
+        """
+        from custom_components.kidde.sensor import async_setup_entry
+
+        mock_coordinator.data.devices["device1"]["battery_state"] = "ok"
+
+        hass = MagicMock()
+        entry = MagicMock()
+        entry.entry_id = "test_entry"
+        hass.data = {DOMAIN: {"test_entry": mock_coordinator}}
+
+        added_entities: list = []
+        await async_setup_entry(hass, entry, added_entities.extend)
+
+        battery_entity = next(
+            e for e in added_entities if e.entity_description.key == "battery_state"
+        )
+        assert battery_entity.native_value == "Good"
+        # The raw API value must be untouched: normalization happens at read
+        # time in the entity, not via a one-time mutation during setup.
+        assert mock_coordinator.data.devices["device1"]["battery_state"] == "ok"
 
 
 class TestKiddeSensorListEntity:

@@ -95,16 +95,31 @@ _MAPPED_SENSOR_DESCRIPTIONS = {
         ),
         "mapping": {0: "Normal", 1: "Normal", 2: "Warning", 3: "Critical"},
     },
+    "battery_state": {
+        "description": SensorEntityDescription(
+            key="battery_state",
+            icon="mdi:battery-high",
+            name="Battery State",
+            device_class=SensorDeviceClass.ENUM,
+            options=["Good", "Low", "Normal", "Unknown", "Warning"],
+        ),
+        # API observed returning both title-cased values ("Good", "Low") and
+        # lowercase ones ("ok", "warning") for the same field depending on
+        # device/firmware. All are mapped explicitly so an ENUM sensor never
+        # sees a raw value outside its declared options (which HA validates
+        # strictly, raising ValueError on mismatch).
+        "mapping": {
+            "ok": "Good",
+            "warning": "Warning",
+            "Good": "Good",
+            "Low": "Low",
+            "Normal": "Normal",
+            "Unknown": "Unknown",
+        },
+    },
 }
 
 _SENSOR_DESCRIPTIONS = (
-    SensorEntityDescription(
-        key="battery_state",
-        icon="mdi:battery-high",
-        name="Battery State",
-        device_class=SensorDeviceClass.ENUM,
-        options=["Good", "Low", "ok", "Normal", "Unknown"],
-    ),
     SensorEntityDescription(
         key="overall_iaq_status",
         icon="mdi:air-filter",
@@ -333,11 +348,6 @@ async def async_setup_entry(
                 coordinator.data.devices[device_id].get(KEY_MODEL, "Unknown"),
             )
 
-        # Normalize battery_state ("Good" / "ok")
-        if "battery_state" in device_data:
-            if device_data["battery_state"] == "ok":
-                device_data["battery_state"] = "Good"
-
         for entity_description in _LIST_SENSOR_DESCRIPTIONS:
             if entity_description.key in device_data:
                 sensors.append(
@@ -424,14 +434,14 @@ class KiddeSensorTimestampEntity(KiddeEntity, SensorEntity):
 
 
 class KiddeSensorMappedEntity(KiddeEntity, SensorEntity):
-    """Sensor for Kidde HomeSafe values that need numeric-to-string mapping."""
+    """Sensor for Kidde HomeSafe values that need value mapping."""
 
     def __init__(
         self,
         coordinator: KiddeCoordinator,
         device_id: str,
         entity_description: SensorEntityDescription,
-        value_mapping: dict[int, str],
+        value_mapping: dict[int, str] | dict[str, str],
     ) -> None:
         """Initialize mapped sensor."""
         super().__init__(coordinator, device_id, entity_description)
@@ -443,7 +453,7 @@ class KiddeSensorMappedEntity(KiddeEntity, SensorEntity):
         raw_value = self.kidde_device.get(self.entity_description.key)
         if raw_value is None:
             return None
-        if isinstance(raw_value, int):
+        if isinstance(raw_value, (int, str)):
             mapped = self._value_mapping.get(raw_value)
             if mapped is None and logger.isEnabledFor(logging.DEBUG):
                 logger.warning(
@@ -454,7 +464,7 @@ class KiddeSensorMappedEntity(KiddeEntity, SensorEntity):
             return mapped
         if logger.isEnabledFor(logging.DEBUG):
             logger.warning(
-                "Expected int for %s, got type %s: %s",
+                "Expected int or str for %s, got type %s: %s",
                 self.entity_description.key,
                 type(raw_value),
                 raw_value,

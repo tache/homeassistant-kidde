@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `locate_active` - Device locate/find feature status (binary sensor)
 
 - **New Entity Classes**:
-  - `KiddeSensorMappedEntity` - Handles numeric-to-enum value conversions
+  - `KiddeSensorMappedEntity` - Handles numeric- or string-to-enum value conversions
   - `KiddeSensorListEntity` - Handles array/list values as comma-separated strings
 
 - **Button Support**:
@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **EssWFAC Device Support** (@ahuffman):
   - Proper device naming for the EssWFAC smoke + carbon monoxide detector
   - Test and Hush buttons now available for EssWFAC (fixes #125)
-  - New `battery_state` sensor (`Good`/`Low`/`ok`/`Normal`/`Unknown`)
+  - New `battery_state` sensor (`Good`/`Low`/`Normal`/`Unknown`/`Warning`)
   - Battery-low binary sensor now correctly recognizes `Good`/`Normal` states instead of only `ok`, fixing false low-battery alerts (fixes #101)
 
 - **Documentation**:
@@ -62,9 +62,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Entity registry now properly handles new sensors on integration reload
 - Improved logging for mapped and list sensor types
+- `battery_state` sensor now consistently shows "Good" instead of reverting to
+  the raw "ok" value after the first coordinator refresh
 
 ### Testing
-- Added 10 comprehensive unit tests for new sensor types
+- Added 14 comprehensive unit tests for new sensor types
 - Fixed the pytest-asyncio and custom-integration test configuration so the full
   suite (config flow, init, sensors, device removal) actually runs and passes
 - CI now runs `ruff` and `pytest` on every push and pull request, in addition
