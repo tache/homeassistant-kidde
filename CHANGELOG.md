@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Devices no longer reported by Kidde can now be removed from Home Assistant's device page
   - Removal is refused for devices Kidde still actively reports, preventing them from silently reappearing
 
-- **EssWFAC Device Support**:
+- **EssWFAC Device Support** (@ahuffman):
   - Proper device naming for the EssWFAC smoke + carbon monoxide detector
   - Test and Hush buttons now available for EssWFAC (fixes #125)
   - New `battery_state` sensor (`Good`/`Low`/`ok`/`Normal`/`Unknown`)
