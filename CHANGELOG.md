@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.3] - 2025-10-09
+## [0.2.0] - 2026-09-03
 
 ### Added
 - **New Sensors (13 total)**:
@@ -36,6 +36,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`healthy_air` Sensor**:
   - New aggregate air quality score (`score`/`category`, e.g. 87/"Good") for IAQ-capable devices
 
+- **Device Removal**:
+  - Devices no longer reported by Kidde can now be removed from Home Assistant's device page
+  - Removal is refused for devices Kidde still actively reports, preventing them from silently reappearing
+
+- **EssWFAC Device Support**:
+  - Proper device naming for the EssWFAC smoke + carbon monoxide detector
+  - Test and Hush buttons now available for EssWFAC (fixes #125)
+  - New `battery_state` sensor (`Good`/`Low`/`ok`/`Normal`/`Unknown`)
+  - Battery-low binary sensor now correctly recognizes `Good`/`Normal` states instead of only `ok`, fixing false low-battery alerts (fixes #101)
+
 - **Documentation**:
   - Added troubleshooting section to README for connection/authentication issues
   - Documented how to reconfigure integration to refresh auth tokens
@@ -55,8 +65,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Testing
 - Added 10 comprehensive unit tests for new sensor types
-- All tests passing with pytest-homeassistant-custom-component
-- Fixed async test decorators in test_init.py
+- Fixed the pytest-asyncio and custom-integration test configuration so the full
+  suite (config flow, init, sensors, device removal) actually runs and passes
+- CI now runs `ruff` and `pytest` on every push and pull request, in addition
+  to the existing Hassfest and HACS validation
+- Added `quality_scale.yaml` tracking Home Assistant integration quality scale progress
 
 ## [0.1.2] - Previous Release
 
