@@ -17,10 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed the `battery_state` sensor entity to "Battery State Detail" so it no
   longer shares the "Battery State" name with the existing binary sensor on
   the same device page (fixes #129)
+- Stopped logging a warning on every poll for the `iaq` sensor specifically,
+  which carries no unit value in the API response (the `Unit` key is absent
+  or an empty string) since it's a unitless score by design, not an
+  unrecognized value. Scoped to `iaq` only (not any empty unit) so a
+  genuinely missing unit on any other measurement sensor still warns as
+  before (fixes #131)
 
 ### Testing
-- Added 4 unit tests covering the `battery_state` mapping and the setup-time-
-  mutation regression from #128
+- Added 7 unit tests covering the `battery_state` mapping, the setup-time-
+  mutation regression from #128, and the unitless-sensor log noise from #131
 
 ## [0.2.0] - 2026-09-03
 
