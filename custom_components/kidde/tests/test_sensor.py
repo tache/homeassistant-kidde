@@ -1,5 +1,6 @@
 """Tests for the Kidde HomeSafe sensor platform."""
 
+import logging
 from unittest.mock import MagicMock
 
 import pytest
@@ -286,6 +287,92 @@ class TestKiddeSensorMeasurementEntity:
         entity = KiddeSensorMeasurementEntity(mock_coordinator, "device1", description)
 
         assert entity.native_unit_of_measurement == CONCENTRATION_PARTS_PER_BILLION
+
+    @pytest.mark.asyncio
+    async def test_measurement_entity_unitless_no_warning(
+        self, mock_coordinator, caplog
+    ):
+        """Test a unitless sensor like iaq returns None without a log warning.
+
+        The `iaq` field is unitless by design (see issue #131), so its Unit
+        is expected to be absent -- that's not an unrecognized unit. The
+        mock_coordinator fixture omits the Unit key entirely for iaq.
+        """
+        from homeassistant.components.sensor import SensorEntityDescription
+
+        description = SensorEntityDescription(
+            key="iaq",
+            name="Indoor Air Quality",
+        )
+
+        entity = KiddeSensorMeasurementEntity(mock_coordinator, "device1", description)
+
+        with caplog.at_level(logging.DEBUG, logger="custom_components.kidde.sensor"):
+            result = entity.native_unit_of_measurement
+
+        assert result is None
+        assert "Unknown unit" not in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_measurement_entity_unitless_empty_string_no_warning(
+        self, mock_coordinator, caplog
+    ):
+        """Test iaq with an explicit empty-string Unit is also silent.
+
+        Real API captures show both shapes for iaq: some omit the Unit key
+        entirely, others include it as "Unit": "". Both must be silent.
+        """
+        from homeassistant.components.sensor import SensorEntityDescription
+
+        mock_coordinator.data.devices["device1"]["iaq"] = {
+            "value": 124.64,
+            "status": "Moderate",
+            "Unit": "",
+        }
+
+        description = SensorEntityDescription(
+            key="iaq",
+            name="Indoor Air Quality",
+        )
+
+        entity = KiddeSensorMeasurementEntity(mock_coordinator, "device1", description)
+
+        with caplog.at_level(logging.DEBUG, logger="custom_components.kidde.sensor"):
+            result = entity.native_unit_of_measurement
+
+        assert result is None
+        assert "Unknown unit" not in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_measurement_entity_empty_unit_still_warns_for_other_keys(
+        self, mock_coordinator, caplog
+    ):
+        """Test an empty unit on a non-iaq field still logs a warning.
+
+        Only `iaq` is unitless by design (see issue #131) -- every other
+        measurement field observed in real API data always has a unit, so
+        an empty unit there is genuinely unexpected and should still warn.
+        """
+        from homeassistant.components.sensor import SensorEntityDescription
+
+        mock_coordinator.data.devices["device1"]["tvoc"] = {
+            "value": 618.87,
+            "status": "Moderate",
+            "Unit": "",
+        }
+
+        description = SensorEntityDescription(
+            key="tvoc",
+            name="Total VOC",
+        )
+
+        entity = KiddeSensorMeasurementEntity(mock_coordinator, "device1", description)
+
+        with caplog.at_level(logging.DEBUG, logger="custom_components.kidde.sensor"):
+            result = entity.native_unit_of_measurement
+
+        assert result is None
+        assert "Unknown unit" in caplog.text
 
     @pytest.mark.asyncio
     async def test_measurement_entity_extra_attributes(self, mock_coordinator):

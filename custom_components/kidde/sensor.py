@@ -558,6 +558,13 @@ class KiddeSensorMeasurementEntity(KiddeEntity, SensorEntity):
 
         entity_unit = entity_dict.get(KEY_UNIT, "").upper()
 
+        if not entity_unit and self.entity_description.key == KEY_IAQ:
+            # iaq (Indoor Air Quality index) is a unitless score by design,
+            # so its Unit is expected to be absent or an empty string; that's
+            # not an unrecognized value, so it doesn't warrant a warning like
+            # other measurement sensors would for a missing/unknown unit.
+            return None
+
         match entity_unit:
             case "C":
                 return UnitOfTemperature.CELSIUS
