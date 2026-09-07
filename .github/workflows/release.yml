@@ -13,6 +13,8 @@ jobs:
     runs-on: "ubuntu-latest"
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     steps:
       - name: "Checkout the repository"
         uses: "actions/checkout@v6.0.2"
@@ -28,6 +30,11 @@ jobs:
         run: |
           cd "${{ github.workspace }}/custom_components/kidde"
           zip kidde.zip -r ./
+
+      - name: "Attest build provenance"
+        uses: "actions/attest-build-provenance@v4.2.2"
+        with:
+          subject-path: "${{ github.workspace }}/custom_components/kidde/kidde.zip"
 
       - name: "Upload the ZIP file to the release"
         uses: softprops/action-gh-release@v2.5.0
