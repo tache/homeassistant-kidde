@@ -151,3 +151,73 @@ async def test_reauth_flow_invalid_auth(hass: HomeAssistant) -> None:
 
         # Verify the entry was NOT updated
         assert entry.data["cookies"] == "old_cookies"
+
+
+@pytest.mark.asyncio
+async def test_options_flow_updates_interval(hass: HomeAssistant) -> None:
+    """Test the options flow writes a new update interval to the entry."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={"cookies": "test_cookies", "update_interval": 30},
+        unique_id="test_entry_id",
+        title="Kidde (test@example.com)",
+    )
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "init"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"update_interval_seconds": 90}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert entry.options["update_interval"] == 90
+
+    # The original setup value stays in data; options takes precedence.
+    assert entry.data["update_interval"] == 30
+
+
+@pytest.mark.asyncio
+async def test_options_flow_rejects_interval_below_minimum(
+    hass: HomeAssistant,
+) -> None:
+    """Test the options flow refuses an interval under 5 seconds."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={"cookies": "test_cookies", "update_interval": 30},
+        unique_id="test_entry_id",
+        title="Kidde (test@example.com)",
+    )
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"update_interval_seconds": 4}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"]["base"] == "invalid_update_interval"
+    assert not entry.options
+
+
+@pytest.mark.asyncio
+async def test_options_flow_defaults_to_current_interval(
+    hass: HomeAssistant,
+) -> None:
+    """Test the form is pre-filled from options, falling back to data."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={"cookies": "test_cookies", "update_interval": 30},
+        options={"update_interval": 120},
+        unique_id="test_entry_id",
+        title="Kidde (test@example.com)",
+    )
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["type"] == FlowResultType.FORM
+
+    schema_defaults = {
+        key.schema: key.default() for key in result["data_schema"].schema
+    }
+    assert schema_defaults["update_interval_seconds"] == 120

@@ -26,5 +26,18 @@
       "already_configured": "Already configured.",
       "reauth_successful": "Re-authentication was successful."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Kidde HomeSafe options",
+        "data": {
+          "update_interval_seconds": "Update Interval (seconds)"
+        }
+      }
+    },
+    "error": {
+      "invalid_update_interval": "Invalid update interval, must be >= 5 seconds."
+    }
   }
 }

@@ -1,5 +1,6 @@
 """Tests for the Kidde HomeSafe integration."""
 
+from datetime import timedelta
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -34,6 +35,53 @@ async def test_async_setup_entry(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
         assert entry.state == ConfigEntryState.LOADED
         assert mock_refresh.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_setup_prefers_update_interval_from_options(
+    hass: HomeAssistant,
+) -> None:
+    """The options value overrides the interval chosen at setup."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={"cookies": "mock_cookie", "update_interval": 60},
+        options={"update_interval": 15},
+        unique_id="test_entry_id",
+    )
+    entry.add_to_hass(hass)
+
+    with patch(
+        "custom_components.kidde.coordinator.KiddeCoordinator.async_refresh",
+        return_value=AsyncMock(),
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+    assert coordinator.update_interval == timedelta(seconds=15)
+
+
+@pytest.mark.asyncio
+async def test_setup_falls_back_to_update_interval_from_data(
+    hass: HomeAssistant,
+) -> None:
+    """The setup value is used while no option has been set."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={"cookies": "mock_cookie", "update_interval": 60},
+        unique_id="test_entry_id",
+    )
+    entry.add_to_hass(hass)
+
+    with patch(
+        "custom_components.kidde.coordinator.KiddeCoordinator.async_refresh",
+        return_value=AsyncMock(),
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+    assert coordinator.update_interval == timedelta(seconds=60)
 
 
 @pytest.mark.asyncio

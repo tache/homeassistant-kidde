@@ -6,7 +6,8 @@ import logging
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.config_entries import ConfigEntry, ConfigFlow
+from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
+from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from kidde_homesafe import KiddeClient, KiddeClientAuthError
 
@@ -34,6 +35,12 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Kidde HomeSafe."""
 
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> KiddeOptionsFlow:
+        """Return the options flow for adjusting the update interval."""
+        return KiddeOptionsFlow()
 
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -113,4 +120,42 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
             description_placeholders={
                 "account": self._reauth_entry.title if self._reauth_entry else "Unknown"
             },
+        )
+
+
+class KiddeOptionsFlow(OptionsFlow):
+    """Handle options for Kidde HomeSafe.
+
+    Exposes the update interval for editing after setup. The value chosen at
+    setup lives in the entry's data, so the current interval is read from the
+    entry's options first and falls back to that original data value.
+    """
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Manage the update interval."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            update_interval = user_input["update_interval_seconds"]
+            if isinstance(update_interval, int) and update_interval >= 5:
+                return self.async_create_entry(
+                    data={"update_interval": update_interval}
+                )
+            errors["base"] = "invalid_update_interval"
+
+        current_interval = self.config_entry.options.get(
+            "update_interval", self.config_entry.data["update_interval"]
+        )
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        "update_interval_seconds", default=current_interval
+                    ): int
+                }
+            ),
+            errors=errors,
         )

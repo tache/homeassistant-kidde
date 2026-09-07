@@ -45,10 +45,13 @@ During setup, you can configure how often the integration polls the Kidde API fo
 - Generate more API calls to Kidde's servers
 - Potentially trigger rate limiting (though not currently observed)
 
-You can adjust this setting by:
+You can change the interval at any time after setup:
 1. Go to Settings → Devices & Services
 2. Find "Kidde HomeSafe" and click "Configure"
-3. Adjust the "Update Interval (seconds)" field
+3. Adjust the "Update Interval (seconds)" field and submit
+
+The integration reloads automatically, so the new interval takes effect
+immediately. Your devices, entities, and history are preserved.
 
 ## Troubleshooting
 
@@ -56,15 +59,16 @@ You can adjust this setting by:
 
 If you see errors like `Cannot connect to host api.homesafe.kidde.com` or authentication failures:
 
-1. **Go to Settings → Devices & Services**
-2. **Find "Kidde HomeSafe" in your integrations list**
-3. **Click the three dots (⋮) on the Kidde integration**
-4. **Select "Reconfigure"** (or "Configure" if available)
-5. **Re-enter your credentials** to refresh authentication
+When authentication fails, Home Assistant surfaces a "Reconfigure" prompt on
+the integration itself — open Settings → Devices & Services and follow it to
+re-enter your credentials.
+
+Note that "Configure" is not the same thing: it only adjusts the update
+interval and does not touch your credentials.
 
 **Alternative - Delete and Re-add:**
 
-If "Reconfigure" isn't available:
+If no re-authentication prompt appears:
 1. Settings → Devices & Services
 2. Find "Kidde HomeSafe" and click the three dots (⋮)
 3. Select "Delete"
