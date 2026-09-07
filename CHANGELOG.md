@@ -8,16 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.2] - Unreleased
 
 ### Added
+- Options flow for the update interval. The polling interval can now be changed
+  after setup from Settings -> Devices & Services -> Kidde HomeSafe ->
+  Configure, instead of only at initial setup. The entry reloads automatically
+  so the new interval applies immediately, with no loss of entities or history
+  (fixes #135)
 - Build provenance attestation for release artifacts. The `kidde.zip` attached
   to a release now carries a signed attestation of how and where it was built,
   verifiable with
   `gh attestation verify kidde.zip --repo tache/homeassistant-kidde` (#136)
 
 ### Fixed
+- README documented a "Configure" option for the update interval that did not
+  exist, and pointed at "Reconfigure" for credential problems. The Configure
+  flow now exists, and the troubleshooting steps describe the actual
+  re-authentication prompt (fixes #135)
 - Release workflow now also runs when a pre-release is promoted to a full
   release. Previously only the initial publish triggered a build, so promoting
   a pre-release left the original artifact in place with no rebuild and no
   attestation (#139)
+
+### Testing
+- Added 5 tests covering the options flow (update, minimum-interval rejection,
+  pre-filled default) and the options-over-data precedence at setup
 
 ## [0.2.1] - 2026-09-04
 
