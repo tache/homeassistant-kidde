@@ -5,7 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.1] - Unreleased
+## [0.2.2] - Unreleased
+
+### Added
+- Build provenance attestation for release artifacts. The `kidde.zip` attached
+  to a release now carries a signed attestation of how and where it was built,
+  verifiable with
+  `gh attestation verify kidde.zip --repo tache/homeassistant-kidde` (#136)
+
+### Fixed
+- Release workflow now also runs when a pre-release is promoted to a full
+  release. Previously only the initial publish triggered a build, so promoting
+  a pre-release left the original artifact in place with no rebuild and no
+  attestation (#139)
+
+## [0.2.1] - 2026-09-04
 
 ### Changed
 - `KiddeSensorMappedEntity` generalized to accept string-keyed mappings in
