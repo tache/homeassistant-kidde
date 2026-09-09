@@ -38,6 +38,6 @@ jobs:
           subject-path: "${{ github.workspace }}/custom_components/kidde/kidde.zip"
 
       - name: "Upload the ZIP file to the release"
-        uses: softprops/action-gh-release@v2.5.0
+        uses: softprops/action-gh-release@v3.0.3
         with:
           files: ${{ github.workspace }}/custom_components/kidde/kidde.zip
