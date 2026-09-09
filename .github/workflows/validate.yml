@@ -48,6 +48,21 @@ jobs:
         with:
           python-version: "3.13"
 
+      # Home Assistant installs from manifest.json, while the tests run against
+      # requirements.txt. If those pins drift, users get a version that was
+      # never tested. Dependabot only updates requirements.txt, so this fails
+      # its PR until the manifest pin is updated to match.
+      - name: "Check manifest and requirements pins agree"
+        shell: "bash"
+        run: |
+          pin=$(python3 -c "import json; print(json.load(open('custom_components/kidde/manifest.json'))['requirements'][0])")
+          if ! grep -qxF "$pin" requirements.txt; then
+            echo "manifest.json requires '$pin', which requirements.txt does not pin identically."
+            echo "Update both so the tested version is the version users install."
+            exit 1
+          fi
+          echo "manifest.json and requirements.txt agree on '$pin'"
+
       - name: "Install dependencies"
         run: "pip install -r requirements-test.txt"
 

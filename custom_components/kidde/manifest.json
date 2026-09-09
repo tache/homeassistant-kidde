@@ -10,7 +10,7 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/tache/homeassistant-kidde/issues",
   "requirements": [
-    "kidde-homesafe"
+    "kidde-homesafe==0.0.3"
   ],
   "version": "0.2.0"
 }
