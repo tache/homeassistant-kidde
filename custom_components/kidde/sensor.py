@@ -496,7 +496,7 @@ class KiddeSensorEntity(KiddeEntity, SensorEntity):
     """Sensor for Kidde HomeSafe."""
 
     @property
-    def native_value(self) -> str | None | float | int:
+    def native_value(self) -> str | float | int | None:
         """Return the native value of the sensor."""
         value = self.kidde_device.get(self.entity_description.key)
         dtype = type(value)
