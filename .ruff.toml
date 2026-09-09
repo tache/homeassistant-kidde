@@ -3,6 +3,7 @@
 target-version = "py312"
 line-length = 89
 
+[lint]
 select = [
     "A",       # prevent using keywords that clobber python builtins
     "B",       # bugbear: security warnings
@@ -51,11 +52,11 @@ fixable = [
     "RUF100", # Remove unused noqa comments.
 ]
 
-[flake8-pytest-style]
+[lint.flake8-pytest-style]
 fixture-parentheses = false
 
-[pyupgrade]
+[lint.pyupgrade]
 keep-runtime-typing = true
 
-[mccabe]
+[lint.mccabe]
 max-complexity = 25
