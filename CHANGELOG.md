@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2026-10-25
+
+### Fixed
+- Integration icon and logo missing in Home Assistant. The Home Assistant
+  brands repository removed the Kidde images on 2026-10-20, treating the
+  integration as archived. They now ship inside the integration at
+  `custom_components/kidde/brand/` (#157)
+
+### Changed
+- The `kidde-homesafe` requirement is pinned to `0.0.3` instead of floating,
+  so an upstream library release cannot change behavior without a new
+  integration release (#148)
+
 ## [0.2.2] - 2026-09-07
 
 ### Added
