@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import logging
 
 from homeassistant.components.sensor import (
@@ -406,7 +406,7 @@ class KiddeSensorTimestampEntity(KiddeEntity, SensorEntity):
     """
 
     @property
-    def native_value(self) -> datetime.datetime | None:
+    def native_value(self) -> dt.datetime | None:
         """Return the native value of the sensor."""
         value = self.kidde_device.get(self.entity_description.key)
         dtype = type(value)
@@ -424,8 +424,8 @@ class KiddeSensorTimestampEntity(KiddeEntity, SensorEntity):
         # https://github.com/tache/homeassistant-kidde/issues/7
         stripped = value.strip("Z").split(".")[0]
         try:
-            return datetime.datetime.strptime(stripped, "%Y-%m-%dT%H:%M:%S").replace(
-                tzinfo=datetime.UTC
+            return dt.datetime.strptime(stripped, "%Y-%m-%dT%H:%M:%S").replace(
+                tzinfo=dt.UTC
             )
         except ValueError as e:
             if logger.isEnabledFor(logging.DEBUG):
